@@ -43,6 +43,7 @@ input{
 .input-group i{
     position: absolute;
     color: black;
+    padding-right: 5rem;
 }
  input:focus{
     background-color: transparent;
@@ -96,7 +97,8 @@ input:focus~label,input:not(:placeholder-shown)~label{
 }
 .ou{
     font-size: 1.1rem;
-    margin-top: 0.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
     text-align: center;
 }
 .icons{
@@ -120,9 +122,10 @@ input:focus~label,input:not(:placeholder-shown)~label{
 }
 .links{
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 20px;
     padding: 0.4rem;
-    margin-top: 0.9rem;
+    margin-top: 1rem;
     font-weight: bold;
 }
 button{
@@ -136,5 +139,3 @@ button:hover{
     text-decoration: underline;
     color: blue;
 }
-
-

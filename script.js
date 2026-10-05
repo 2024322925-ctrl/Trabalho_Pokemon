@@ -1,13 +1,13 @@
-const signUpButton=document.getElementById('signUpButton');
-const signInButton=document.getElementById('signInButton');
-const signInForm=document.getElementById('signInForm');
-const signUpForm=document.getElementById('signUpForm');
+const botaoRegistro=document.getElementById('BotaoRegistro');
+const botaoEntrar=document.getElementById('BotaoEntrar');
+const entrarForm=document.getElementById('entrar');
+const registroForm=document.getElementById('registro');
 
-signUpButton.addEventListener('click', function(){
-     signInForm.style.display="none";
-     signUpForm.style.display="block";
+botaoRegistro.addEventListener('click', function(){
+     entrarForm.style.display="none";
+     registroForm.style.display="block";
 })
-signInButton.addEventListener('click', function(){
-    signInForm.style.display="block";
-    signUpForm.style.display="none";
+botaoEntrar.addEventListener('click', function(){
+    entrarForm.style.display="block";
+    registroForm.style.display="none";
 })

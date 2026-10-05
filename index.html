@@ -11,13 +11,13 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container" id="registro">
+    <div class="container" id="registro" style="display: none;">
         <h1 class="form-title">Registro</h1>
         <form method="post" action="">
           <div class="input-group">
             <i class="fas fa-user"></i>
             <input type="text" name="pNome" id="pNome" placeholder="Primeiro Nome" required>
-            <label for="pnome">Primeiro Nome</label>
+            <label for="pNome">Primeiro Nome</label>
         </div>
         <div class="input-group">
             <i class="fas fa-user"></i>
@@ -26,13 +26,13 @@
         </div>
         <div class="input-group">
             <i class="fas fa-envelope"></i>
-            <input type="email" name="email" id="email" placeholder="Email" required>
-            <label for="email">Email</label>
+            <input type="email" name="email" id="emailLogin" placeholder="Email" required>
+            <label for="emailLogin">Email</label>
         </div>
         <div class="input-group">
             <i class="fas fa-lock"></i>
-            <input type="password" id="password" placeholder="Senha" required>
-            <label for="password">Senha</label>
+            <input type="password" id="passwordLogin" placeholder="Senha" required>
+            <label for="passwordLogin">Senha</label>
         </div>
         <input type="submit" class="btn" value="Registre-se" name="registro">
         </form>
@@ -83,6 +83,6 @@
         </div>
         
     </div>
-
+    <script src="script.js"></script>
 </body>
 </html>
