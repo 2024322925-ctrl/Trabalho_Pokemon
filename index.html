@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container" id="signup">
+    <div class="container" id="registro">
         <h1 class="form-title">Registro</h1>
         <form method="post" action="">
           <div class="input-group">
@@ -34,8 +34,55 @@
             <input type="password" id="password" placeholder="Senha" required>
             <label for="password">Senha</label>
         </div>
-        
+        <input type="submit" class="btn" value="Registre-se" name="registro">
         </form>
+        <p class="ou">
+           ---------ou-------- 
+        </p>
+        <div class="icons">
+            <i class="fab fa-google"></i>
+            <i class="fab fa-facebook"></i>
+        </div>
+        <div class="links">
+            <p>já tem uma conta ?</p>
+            <button id="BotaoEntrar">Entrar</button>
+        </div>
+        
     </div>
+
+
+    <div class="container" id="entrar">
+        <h1 class="form-title">Entrar</h1>
+        <form method="post" action="">
+          
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="email" id="email" placeholder="Email" required>
+            <label for="email">Email</label>
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Senha" required>
+            <label for="password">Senha</label>
+        </div>
+        <p class="recover">
+            <a href="#">esqueceu a senha?</a>
+        </p>
+        <input type="submit" class="btn" value="Entrar" name="entrar">
+        </form>
+        <p class="ou">
+           ---------ou-------- 
+        </p>
+        <div class="icons">
+            <i class="fab fa-google"></i>
+            <i class="fab fa-facebook"></i>
+        </div>
+        <div class="links">
+            <p>Não tem uma conta?</p>
+            <button id="BotaoRegistro">Registre-se</button>
+        </div>
+        
+    </div>
+
 </body>
 </html>
