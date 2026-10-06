@@ -3,8 +3,8 @@
 include 'conexao.php';
 
 if(isset($_POST['registro'])){
-    $nome=$_POST['pName'];
-    $sobrenome=$_POST['uName'];
+    $nome=$_POST['pNome'];
+    $sobrenome=$_POST['uNome'];
     $email=$_POST['email'];
     $senha=$_POST['senha'];
     $senha=md5($senha);
@@ -12,7 +12,8 @@ if(isset($_POST['registro'])){
     $checkEmail="SELECT * From usuario where email='$email'";
     $result=$conn->query($checkEmail);
     if($result->num_rows>0){
-        echo "O Endereço de Email já Existe !";
+        header("Location: index.php?erro=email");
+        exit();
     }
     else{
         $insertQuery="INSERT INTO usuario(nome,sobrenome,email,senha)
@@ -42,7 +43,8 @@ if(isset($_POST['entrar'])){
      exit();
     }
     else{
-        echo "Não Encontrado, Email ou Senha Incorretos";
+        header("Location: index.php?erro=login");
+    exit();
     }
 }
 ?>

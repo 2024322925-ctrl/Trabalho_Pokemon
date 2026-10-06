@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("conexao.php");
+
 ?>
 
 
@@ -20,11 +21,12 @@ include("conexao.php");
                 $email=$_SESSION['email'];
                 $query=mysqli_query($conn, "SELECT usuario.* FROM `usuario` WHERE usuario.email='$email'");
                 while($row=mysqli_fetch_array($query)){
-                    echo $row['nome'].''.$row['sobrenome'];
+                    echo $row['nome'].' '.$row['sobrenome'];
                 }
             }
             ?>
         </p>
+        <a href="sair.php">Sair</a>
 
     </div>
 </body>

@@ -36,15 +36,12 @@
             <input type="password" id="senha" placeholder="Senha" required>
             <label for="senha">Senha</label>
         </div>
+
+        <p id="mensagemRegistro" class="erro-login"></p>
+        
         <input type="submit" class="btn" value="Registre-se" name="registro">
         </form>
-        <p class="ou">
-           ---------ou-------- 
-        </p>
-        <div class="icons">
-            <i class="fab fa-google"></i>
-            <i class="fab fa-facebook"></i>
-        </div>
+        
         <div class="links">
             <p>já tem uma conta ?</p>
             <button id="BotaoEntrar">Entrar</button>
@@ -53,7 +50,7 @@
     </div>
 
 
-    <div class="container" id="entrar">
+    <div class="container" id="entrar" >
         <h1 class="form-title">Entrar</h1>
         <form method="post" action="registro.php">
           
@@ -67,18 +64,11 @@
             <input type="password" id="senha" placeholder="Senha" required>
             <label for="senha">Senha</label>
         </div>
-        <p class="recover">
-            <a href="#">esqueceu a senha?</a>
-        </p>
+        <p id="mensagem" class="erro-login"></p>
+        
         <input type="submit" class="btn" value="Entrar" name="entrar">
         </form>
-        <p class="ou">
-           ---------ou-------- 
-        </p>
-        <div class="icons">
-            <i class="fab fa-google"></i>
-            <i class="fab fa-facebook"></i>
-        </div>
+        
         <div class="links">
             <p>Não tem uma conta?</p>
             <button id="BotaoRegistro">Registre-se</button>
