@@ -15,11 +15,11 @@ body{
     padding-top: 60px;
 }
 .container{
-    background: #f0d45b;
+    background: #fccc0ad5;
     width: 450px;
     padding: 1.5rem;
     border-radius: 10px;
-    box-shadow: 0 20px 35px rgba(0,0,1,0.9);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.562);
 }
 form{
     margin: 0 2rem;
@@ -30,7 +30,7 @@ form{
     text-align: center;
     padding: 1.3rem;
     margin-bottom: 0.4rem;
-    color: rgb(74, 104, 238);
+    color: #3c7397;
 }
 input{
     color: inherit;
@@ -48,13 +48,13 @@ input{
 }
 .input-group i{
     position: absolute;
-    color: rgb(74, 104, 238);
+    color: #3c7397;
     padding-right: 5rem;
 }
  input:focus{
     background-color: transparent;
     outline:transparent;
-    border-bottom: 2px solid hsl(327, 90%, 28%);
+    border-bottom: 2px solid hsl(0, 0%, 0%);
 }
 input::placeholder{
     color:transparent
@@ -69,7 +69,7 @@ label{
 }
 input:focus~label,input:not(:placeholder-shown)~label{
     top: -3em;
-    color: hsl(327, 90%, 28%);
+    color: hsl(0, 0%, 0%);
     font-size: 15px;
 }
 
@@ -80,7 +80,7 @@ input:focus~label,input:not(:placeholder-shown)~label{
     outline: none;
     border: none;
     width: 100%;
-    background: rgb(74, 104, 238);
+    background: #3c7397;
     color: white;
     cursor: pointer;
     transition: 0.9s;
@@ -98,7 +98,7 @@ input:focus~label,input:not(:placeholder-shown)~label{
     font-weight: bold;
 }
 button{
-    color: rgb(74, 104, 238);
+    color: #3c7397;
     border: none;
     background-color: transparent;
     font-size: 1rem;
@@ -110,7 +110,7 @@ button:hover{
 }
 
 .erro-login {
-    color: #7773B8;
+    color: #3c7397;
     font-size: 0.9rem;
     margin-bottom: 1rem;
     line-height: 1.3;
