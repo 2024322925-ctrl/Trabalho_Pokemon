@@ -13,6 +13,8 @@
     <title>Registro e Login</title>
 </head>
 <body>
+    <img src="titulo.png" alt="titulo" class="titulo">
+
     <div class="container" id="registro" style="display: none;">
         <h1 class="form-title">Registro</h1>
         <form method="post" action="registro.php">
@@ -38,7 +40,7 @@
         </div>
 
         <p id="mensagemRegistro" class="erro-login"></p>
-        
+
         <input type="submit" class="btn" value="Registre-se" name="registro">
         </form>
         

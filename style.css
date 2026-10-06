@@ -6,13 +6,18 @@
 }
 body{
     background-color: #c9d6ff;
-    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+    background: linear-gradient(to right, #77b2e2, #eee69ade);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 60px;
 }
 .container{
-    background: #fff;
+    background: #f0d45b;
     width: 450px;
     padding: 1.5rem;
-    margin: 50px auto;
     border-radius: 10px;
     box-shadow: 0 20px 35px rgba(0,0,1,0.9);
 }
@@ -25,6 +30,7 @@ form{
     text-align: center;
     padding: 1.3rem;
     margin-bottom: 0.4rem;
+    color: rgb(74, 104, 238);
 }
 input{
     color: inherit;
@@ -42,7 +48,7 @@ input{
 }
 .input-group i{
     position: absolute;
-    color: black;
+    color: rgb(74, 104, 238);
     padding-right: 5rem;
 }
  input:focus{
@@ -74,13 +80,13 @@ input:focus~label,input:not(:placeholder-shown)~label{
     outline: none;
     border: none;
     width: 100%;
-    background: rgb(125,125,235);
+    background: rgb(74, 104, 238);
     color: white;
     cursor: pointer;
     transition: 0.9s;
 }
 .btn:hover{
-    background: #07001f;
+    background: blue;
 }
 
 .links{
@@ -92,7 +98,7 @@ input:focus~label,input:not(:placeholder-shown)~label{
     font-weight: bold;
 }
 button{
-    color: rgb(125,125,235);
+    color: rgb(74, 104, 238);
     border: none;
     background-color: transparent;
     font-size: 1rem;
@@ -108,4 +114,11 @@ button:hover{
     font-size: 0.9rem;
     margin-bottom: 1rem;
     line-height: 1.3;
+}
+
+.titulo {
+    display: block;
+    width: 600px;
+    height: auto;
+    margin: 0 auto 70px auto;
 }
