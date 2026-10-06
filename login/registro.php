@@ -1,6 +1,6 @@
 <?php
 
-include 'conexao.php';
+include '../conexao.php';
 
 if(isset($_POST['registro'])){
     $nome=$_POST['pNome'];
@@ -39,7 +39,7 @@ if(isset($_POST['entrar'])){
      session_start();
      $row=$result->fetch_assoc();
      $_SESSION['email']=$row['email'];
-     header("Location: paginainicial.php");
+     header("Location: ../paginainicial.php");
      exit();
     }
     else{

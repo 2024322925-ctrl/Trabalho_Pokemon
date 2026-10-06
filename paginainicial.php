@@ -26,7 +26,7 @@ include("conexao.php");
             }
             ?>
         </p>
-        <a href="sair.php">Sair</a>
+        <a href="login/sair.php">Sair</a>
 
     </div>
 </body>

@@ -30,3 +30,5 @@ if(url.get("erro") === "email"){
 window.addEventListener('pageshow', function() {
     document.activeElement.blur();
 });
+
+//fim página de login
