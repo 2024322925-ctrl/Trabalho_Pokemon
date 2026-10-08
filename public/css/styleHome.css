@@ -1,0 +1,393 @@
+* {
+
+    margin: 0;
+    padding: 0;
+
+    box-sizing: border-box;
+
+    font-family: "Pixelify Sans", sans-serif;
+
+}
+
+
+body {
+
+    background-color: #c9d6ff;
+
+    background: linear-gradient(
+        to right,
+        #77b2e2,
+        #eee69ade
+    );
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    min-height: 100vh;
+
+}
+
+
+/* PÁGINA */
+
+.home {
+
+    width: 100%;
+
+    min-height: 100vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 40px 20px;
+
+}
+
+
+/* LOGO */
+
+.titulo {
+
+    display: block;
+
+    width: 600px;
+
+    max-width: 80%;
+
+    height: auto;
+
+    margin: 0 auto 50px auto;
+
+    filter: drop-shadow(
+        0 8px 5px rgba(0, 0, 0, 0.35)
+    );
+
+}
+
+
+/* MENU */
+
+.menu-home {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 25px;
+
+}
+
+
+/* COLUNAS DOS BOTÕES */
+
+.coluna-menu {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+
+/* BOTÕES */
+
+.botao-menu {
+
+    width: 215px;
+
+    height: 75px;
+
+    background: #3c7397;
+
+    border: 3px solid #5ce5e8;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 7px 0 #28556f,
+        0 10px 18px rgba(0, 0, 0, 0.35);
+
+    display: flex;
+
+    align-items: center;
+
+    text-decoration: none;
+
+    color: #fccc0a;
+
+    transition: 0.2s;
+
+}
+
+
+/* EFEITO DO BOTÃO */
+
+.botao-menu:hover {
+
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 11px 0 #28556f,
+        0 14px 20px rgba(0, 0, 0, 0.35);
+
+}
+
+
+.botao-menu:active {
+
+    transform: translateY(3px);
+
+    box-shadow:
+        0 3px 0 #28556f,
+        0 5px 10px rgba(0, 0, 0, 0.3);
+
+}
+
+
+/* ÍCONE */
+
+.icone-menu {
+
+    width: 65px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: 32px;
+
+    color: #fccc0a;
+
+    text-shadow:
+        2px 2px #28556f;
+
+}
+
+
+/* TEXTO */
+
+.botao-menu span {
+
+    flex: 1;
+
+    text-align: center;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    line-height: 1;
+
+    text-shadow:
+        2px 2px #28556f;
+
+}
+
+
+/* PERFIL */
+
+.perfil {
+
+    width: 270px;
+
+    min-height: 185px;
+
+    background: #fccc0ad5;
+
+    border-radius: 10px;
+
+    padding: 18px;
+
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.562);
+
+}
+
+
+/* TÍTULO DO PERFIL */
+
+.perfil h2 {
+
+    font-size: 1.2rem;
+
+    font-weight: bold;
+
+    text-align: center;
+
+    color: #3c7397;
+
+    margin-bottom: 15px;
+
+}
+
+
+/* DADOS DO JOGADOR */
+
+.dados-jogador {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+}
+
+
+/* AVATAR */
+
+.avatar {
+    width: 70px;
+    height: 70px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar img {
+    width: 180px;
+    height: 180px;
+
+    object-fit: contain;
+
+    image-rendering: pixelated;
+}
+
+/* INFORMAÇÕES */
+
+.informacoes h3 {
+
+    color: #3c7397;
+
+    font-size: 18px;
+
+    margin-bottom: 3px;
+
+}
+
+
+.informacoes p {
+
+    color: #333;
+
+    font-size: 12px;
+
+    line-height: 1.3;
+
+}
+
+
+/* TIME */
+
+.time {
+
+    margin-top: 15px;
+
+    padding: 8px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    background: rgba(255, 255, 255, 0.25);
+
+    border-radius: 8px;
+
+}
+
+
+/* POKÉMON */
+
+.pokemon {
+
+    width: 45px;
+
+    height: 45px;
+
+    background: #3c7397;
+
+    border-radius: 7px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    color: #fccc0a;
+
+    font-size: 22px;
+
+}
+
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 850px) {
+
+    .menu-home {
+
+        flex-direction: column;
+
+    }
+
+    .perfil {
+
+        order: -1;
+
+    }
+
+    .coluna-menu {
+
+        flex-direction: row;
+
+    }
+
+}
+
+
+@media (max-width: 550px) {
+
+    .titulo {
+
+        width: 400px;
+
+    }
+
+    .coluna-menu {
+
+        flex-direction: column;
+
+    }
+
+    .botao-menu {
+
+        width: 270px;
+
+    }
+
+    .perfil {
+
+        width: 270px;
+
+    }
+
+}
