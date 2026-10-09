@@ -20,6 +20,11 @@ body {
         #eee69ade
     );
 
+    background-image: url(../imagens/pokemon-chromebook-wallpaper.jpg);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+
     display: flex;
 
     justify-content: center;
@@ -35,18 +40,13 @@ body {
 .home {
 
     width: 100%;
-
     min-height: 100vh;
 
     display: flex;
-
     flex-direction: column;
-
-    justify-content: center;
-
     align-items: center;
 
-    padding: 40px 20px;
+    padding: 20px;
 
 }
 
@@ -54,6 +54,7 @@ body {
 /* LOGO */
 
 .titulo {
+
 
     display: block;
 
@@ -63,7 +64,7 @@ body {
 
     height: auto;
 
-    margin: 0 auto 50px auto;
+    margin: 0 auto 100px auto;
 
     filter: drop-shadow(
         0 8px 5px rgba(0, 0, 0, 0.35)
@@ -80,9 +81,9 @@ body {
 
     justify-content: center;
 
-    align-items: center;
+    align-items: stretch;
 
-    gap: 25px;
+    gap: 30px;
 
 }
 
@@ -95,7 +96,7 @@ body {
 
     flex-direction: column;
 
-    gap: 20px;
+    gap: 15px;
 
 }
 
@@ -104,15 +105,15 @@ body {
 
 .botao-menu {
 
-    width: 215px;
+    width: 280px;
 
-    height: 75px;
+    height: 100px;
 
     background: #3c7397;
 
     border: 3px solid #5ce5e8;
 
-    border-radius: 10px;
+    border-radius: 0px;
 
     box-shadow:
         0 7px 0 #28556f,
@@ -202,17 +203,17 @@ body {
 .perfil {
 
     width: 270px;
+    height: auto;
 
-    min-height: 185px;
-
-    background: #fccc0ad5;
-
-    border-radius: 10px;
-
+    flex-shrink: 0;
+    border: 3px solid #5ce5e8;
+    background: #fccc0ab4;
     padding: 18px;
 
-    box-shadow:
-        0 10px 20px rgba(0, 0, 0, 0.562);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.562);
+
+    display: flex;
+    flex-direction: column;
 
 }
 
@@ -338,56 +339,8 @@ body {
 
 }
 
-
-/* RESPONSIVIDADE */
-
-@media (max-width: 850px) {
-
-    .menu-home {
-
-        flex-direction: column;
-
-    }
-
-    .perfil {
-
-        order: -1;
-
-    }
-
-    .coluna-menu {
-
-        flex-direction: row;
-
-    }
-
-}
-
-
-@media (max-width: 550px) {
-
-    .titulo {
-
-        width: 400px;
-
-    }
-
-    .coluna-menu {
-
-        flex-direction: column;
-
-    }
-
-    .botao-menu {
-
-        width: 270px;
-
-    }
-
-    .perfil {
-
-        width: 270px;
-
-    }
-
+.container-menu {
+    display: flex;
+    align-items: stretch;
+    gap: 30px;
 }

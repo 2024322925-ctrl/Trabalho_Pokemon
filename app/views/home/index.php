@@ -9,161 +9,105 @@ if (!isset($_SESSION["id_usuario"])) {
 
 $nome = $_SESSION["nome"];
 $sobrenome = $_SESSION["sobrenome"];
-
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css"
-    >
-
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
     <link rel="stylesheet" href="../../../public/css/styleHome.css">
-
-    <title>Pokémon - Home</title>
+    <title>Pokémon Home</title>
 </head>
-
 <body>
-
     <main class="home">
 
-        <!-- LOGO -->
         <img
             src="../../../public/imagens/titulo.png"
             alt="Pokémon"
             class="titulo"
         >
 
+    <section class="menu-home">
+        <div class="container-menu">
 
-        <section class="menu-home">
+        <div class="coluna-menu">
 
-            <!-- LADO ESQUERDO -->
-            <div class="coluna-menu">
+            <a href="../team/index.php" class="botao-menu">
+                <div class="icone-menu">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <span>TEAM<br>BUILDER</span>
+            </a>
 
-                <a href="../team/index.php" class="botao-menu">
+            <a href="../batalha/index.php" class="botao-menu">
+                <div class="icone-menu">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+                <span>BATALHA</span>
+            </a>
 
-                    <div class="icone-menu">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
+            <a href="../loja/index.php" class="botao-menu">
+                <div class="icone-menu">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <span>LOJA</span>
+            </a>
 
-                    <span>
-                        TEAM<br>
-                        BUILDER
-                    </span>
+            <a href="../login/index.php?acao=sair" class="botao-menu">
+                <div class="icone-menu">
+                    <i class="fa-solid fa-door-open"></i>
+                </div>
+                <span>SAIR</span>
+            </a>
 
-                </a>
+        </div>
 
+        <div class="perfil">
 
-                <a href="../batalha/index.php" class="botao-menu">
+            <h2>PERFIL DO JOGADOR</h2>
 
-                    <div class="icone-menu">
-                        <i class="fa-solid fa-fire"></i>
-                    </div>
+            <div class="dados-jogador">
 
-                    <span>
-                        BATALHA
-                    </span>
-
-                </a>
-
-            </div>
-
-
-            <!-- PERFIL -->
-            <div class="perfil">
-
-                <h2>PERFIL DO JOGADOR</h2>
-
-                <div class="dados-jogador">
-
-                    <div class="avatar">
-                        <img src="../../../public/imagens/ash.png" alt="Ash">
-                    </div>
-
-                    <div class="informacoes">
-
-                        <h3>
-                            <?= htmlspecialchars($nome . " " . $sobrenome) ?>
-                        </h3>
-
-                        <p>TREINADOR POKÉMON</p>
-
-                    </div>
-
+                <div class="avatar">
+                    <img src="../../../public/imagens/ash.png" alt="Ash">
                 </div>
 
-
-                <div class="time">
-
-                    <div class="pokemon">
-                        <i class="fa-solid fa-bolt"></i>
-                    </div>
-
-                    <div class="pokemon">
-                        <i class="fa-solid fa-leaf"></i>
-                    </div>
-
-                    <div class="pokemon">
-                        <i class="fa-solid fa-fire"></i>
-                    </div>
-
-                    <div class="pokemon">
-                        <i class="fa-solid fa-droplet"></i>
-                    </div>
-
+                <div class="informacoes">
+                    <h3>
+                        <?= htmlspecialchars($nome . " " . $sobrenome) ?>
+                    </h3>
+                    <p>TREINADOR POKÉMON</p>
                 </div>
 
             </div>
 
+            <div class="time">
+                <div class="pokemon">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
 
-            <!-- LADO DIREITO -->
-            <div class="coluna-menu">
+                <div class="pokemon">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
 
-                <a href="../loja/index.php" class="botao-menu">
+                <div class="pokemon">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
 
-                    <div class="icone-menu">
-                        <i class="fa-solid fa-store"></i>
-                    </div>
-
-                    <span>
-                        LOJA
-                    </span>
-
-                </a>
-
-
-                <a href="../login/index.php?acao=sair" class="botao-menu">
-
-                    <div class="icone-menu">
-                        <i class="fa-solid fa-door-open"></i>
-                    </div>
-
-                    <span>
-                        SAIR
-                    </span>
-
-                </a>
-
+                <div class="pokemon">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
             </div>
 
-        </section>
-
+        </div>
+        </div>
+    </section>
     </main>
-
 </body>
-
 </html>

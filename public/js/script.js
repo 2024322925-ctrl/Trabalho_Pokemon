@@ -1,34 +1,25 @@
-const botaoRegistro=document.getElementById('BotaoRegistro');
-const botaoEntrar=document.getElementById('BotaoEntrar');
-const entrarForm=document.getElementById('entrar');
-const registroForm=document.getElementById('registro');
+async function carregarPokemons() {
+    const quantidade = document.getElementById("quantidade-pokemons");
 
-botaoRegistro.addEventListener('click', function(){
-     entrarForm.style.display="none";
-     registroForm.style.display="block";
-})
-botaoEntrar.addEventListener('click', function(){
-    entrarForm.style.display="block";
-    registroForm.style.display="none";
-})
+    try {
+        const resposta = await fetch("../../../public/api/listarPokemons.php");
 
-const url = new URLSearchParams(window.location.search);
+        if (!resposta.ok) {
+            throw new Error("Erro ao buscar os Pokémon.");
+        }
 
-if(url.get("erro") === "login"){
-    document.getElementById("mensagem").textContent =
-        "Conta não encontrada. Crie uma conta para continuar.";
+        const pokemons = await resposta.json();
+
+        const ids = new Set(pokemons.map(pokemon => pokemon.id_pokemon));
+
+        quantidade.textContent = ids.size;
+
+        console.log("Pokémon recebidos da API:", pokemons);
+
+    } catch (erro) {
+        quantidade.textContent = "Erro ao carregar";
+        console.error("Erro ao carregar os Pokémon:", erro);
+    }
 }
 
-if(url.get("erro") === "email"){
-    registroForm.style.display = "block";
-    entrarForm.style.display = "none";
-
-    document.getElementById("mensagemRegistro").textContent =
-        "Este email já está cadastrado.";
-}
-
-window.addEventListener('pageshow', function() {
-    document.activeElement.blur();
-});
-
-//fim página de login
+carregarPokemons();

@@ -138,6 +138,6 @@ if (isset($_POST["entrar"])) {
         </div>
         
     </div>
-    <script src="../../../public/js/script.js"></script>
+    <script src="../../../public/js/scriptLogin.js"></script>
 </body>
 </html>
