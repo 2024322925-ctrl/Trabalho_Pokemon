@@ -20,7 +20,7 @@ body {
         #eee69ade
     );
 
-    background-image: url(../imagens/pokemon-chromebook-wallpaper.jpg);
+    background-image: url(../imagens/batalha3.jpg);
     background-attachment: fixed;
     background-repeat: no-repeat;
     background-size: cover;
@@ -38,8 +38,8 @@ body {
 /* PÁGINA */
 
 .home {
-
-    width: 100%;
+    background-color: rgba(255, 255, 255, 0.452);
+    width: 45%;
     min-height: 100vh;
 
     display: flex;
@@ -202,12 +202,12 @@ body {
 
 .perfil {
 
-    width: 270px;
+    width: 340px;
     height: auto;
 
     flex-shrink: 0;
     border: 3px solid #5ce5e8;
-    background: #fccc0ab4;
+    background: #fccc0a;
     padding: 18px;
 
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.562);

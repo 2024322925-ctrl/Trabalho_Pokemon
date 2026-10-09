@@ -26,12 +26,7 @@ $sobrenome = $_SESSION["sobrenome"];
 </head>
 <body>
     <main class="home">
-
-        <img
-            src="../../../public/imagens/titulo.png"
-            alt="Pokémon"
-            class="titulo"
-        >
+    <img src="../../../public/imagens/titulo2.png" alt="Pokémon" class="titulo">
 
     <section class="menu-home">
         <div class="container-menu">

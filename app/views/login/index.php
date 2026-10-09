@@ -74,7 +74,7 @@ if (isset($_POST["entrar"])) {
     <title>Registro e Login</title>
 </head>
 <body>
-    <img src="../../../public/imagens/titulo.png" alt="titulo" class="titulo">
+    <img src="../../../public/imagens/titulo2.png" alt="titulo" class="titulo">
 
     <div class="container" id="registro" style="display: none;">
         <h1 class="form-title">Registro</h1>
@@ -138,6 +138,7 @@ if (isset($_POST["entrar"])) {
         </div>
         
     </div>
+   
     <script src="../../../public/js/scriptLogin.js"></script>
 </body>
 </html>

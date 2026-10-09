@@ -5,8 +5,8 @@
     font-family: "Pixelify Sans", sans-serif;
 }
 body{
-    background-color: #c9d6ff;
-    background: linear-gradient(to right, #77b2e2, #eee69ade);
+    background-image: url(../imagens/batalha3.jpg);
+    background-size: cover;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -15,7 +15,7 @@ body{
     padding-top: 60px;
 }
 .container{
-    background: #fccc0ad5;
+    background: #fccc0a;
     width: 450px;
     padding: 1.5rem;
     border-radius: 10px;
