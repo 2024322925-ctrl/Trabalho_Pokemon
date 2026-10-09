@@ -35,28 +35,28 @@ $sobrenome = $_SESSION["sobrenome"];
 
             <a href="../team/index.php" class="botao-menu">
                 <div class="icone-menu">
-                    <i class="fa-solid fa-users"></i>
+                    <img src="../../../public/imagens/teambuilder.png" alt="icone">
                 </div>
                 <span>TEAM<br>BUILDER</span>
             </a>
 
             <a href="../batalha/index.php" class="botao-menu">
                 <div class="icone-menu">
-                    <i class="fa-solid fa-fire"></i>
+                    <img src="../../../public/imagens/batalhaicone.png" alt="icone">
                 </div>
                 <span>BATALHA</span>
             </a>
 
             <a href="../loja/index.php" class="botao-menu">
                 <div class="icone-menu">
-                    <i class="fa-solid fa-store"></i>
+                    <img src="../../../public/imagens/teambuilder.png" alt="icone">
                 </div>
                 <span>LOJA</span>
             </a>
 
             <a href="../login/index.php?acao=sair" class="botao-menu">
                 <div class="icone-menu">
-                    <i class="fa-solid fa-door-open"></i>
+                    <img src="../../../public/imagens/teambuilder.png" alt="icone">
                 </div>
                 <span>SAIR</span>
             </a>
