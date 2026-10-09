@@ -161,9 +161,8 @@ body {
 
 .icone-menu img{
 
-    width: 45px;
+    width: 150px;
     height: auto;
-    margin-left: 25px;
     display: flex;
     justify-content: center;
     align-items: center;
