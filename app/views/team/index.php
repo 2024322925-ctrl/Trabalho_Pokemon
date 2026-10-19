@@ -27,7 +27,6 @@ if (!isset($_SESSION["id_usuario"])) {
 
         <header class="cabecalho-team">
             <h1>TEAM BUILDER</h1>
-            <p>Monte sua equipe Pokémon!</p>
         </header>
 
         <section class="conteudo-team">
@@ -44,8 +43,6 @@ if (!isset($_SESSION["id_usuario"])) {
                     <div class="slot-pokemon" data-slot="5"></div>
                 </div>
             </section>
-
-            <!-- Detalhes do Pokémon selecionado -->
             <aside class="painel-detalhes">
                 <h2>Detalhes</h2>
 
@@ -54,9 +51,8 @@ if (!isset($_SESSION["id_usuario"])) {
                 </div>
             </aside>
 
-            <!-- Lista dos Pokémon disponíveis -->
             <section class="painel-selecao">
-                <h2>Escolha seus Pokémon</h2>
+                <h2>Escolha seus Pokémons</h2>
 
                 <p class="contador-pokemon">
                     Pokémon disponíveis:

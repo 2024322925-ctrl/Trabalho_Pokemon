@@ -20,8 +20,12 @@ body {
     width: min(1000px, 94%);
     min-height: 100vh;
     margin: 0 auto;
-    padding: 28px 35px;
-    background-color: #ffffff;
+    padding: 28px 100px;
+    background-color: #3c7397;
+    border-left: 6px solid #5ce5e8;
+    border-right: 6px solid #5ce5e8;
+    box-shadow:0px 7px 7px 7px #28556f
+        
 }
 
 .cabecalho-team {
@@ -30,6 +34,7 @@ body {
 }
 
 .cabecalho-team h1 {
+    color: whitesmoke;
     font-size: 38px;
     margin-bottom: 8px;
 }
@@ -64,7 +69,6 @@ body {
 .painel-selecao {
     min-width: 0;
     padding: 20px;
-    border-radius: 14px;
     border: 2px solid #e0eaf2;
     background-color: #fafdff;
 }
@@ -85,16 +89,14 @@ body {
 .slot-pokemon {
     min-width: 0;
     min-height: 105px;
-    border: 2px dashed #b9d5e9;
-    border-radius: 12px;
+    border: 2px solid #b9d5e9;
     background-color: #edf6fc;
 }
 
 #detalhes-pokemon {
     min-height: 230px;
     padding: 12px;
-    border-radius: 12px;
-    background-color: #fff9df;
+    background-color: #f2dc81;
     border: 1px solid #f1e5ad;
 }
 
@@ -114,7 +116,6 @@ body {
     padding: 12px 15px;
     margin-bottom: 18px;
     border: 2px solid #d5e4ef;
-    border-radius: 10px;
     background-color: #fff;
     color: #315b78;
     font-size: 16px;
@@ -186,7 +187,7 @@ body {
     min-width: 0;
     padding: 10px 6px;
     border: 1px solid #dce8f1;
-    border-radius: 12px;
+    border-radius: 0px;
     background-color: #ffffff;
     cursor: pointer;
     transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
@@ -223,13 +224,14 @@ body {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 6px;
+    gap: 8px;
+    margin-top: 8px;
+    min-height: 24px;
 }
 
 .icone-tipo {
-    width: 25px;
-    height: 25px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
 }
 
