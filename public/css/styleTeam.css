@@ -68,7 +68,7 @@ body {
 .painel-selecao {
     min-width: 0;
     padding: 20px;
-    border: 2px solid #e0eaf2;
+    border: 4px solid #5ce5e8;
     background-color: #fafdff;
 }
 
@@ -94,14 +94,14 @@ body {
 
 #detalhes-pokemon {
     min-height: 230px;
-    padding: 12px;
-    background-color: #f2dc81;
-    border: 1px solid #f1e5ad;
+    padding: 8px;
+    background-color: #fbe960c8;
+    border: 3px solid #3c7397;
 }
 
 #detalhes-pokemon p {
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 11px;
+    line-height: 1.2;
 }
 
 .contador-pokemon {
@@ -213,16 +213,17 @@ body {
 }
 
 .imagem-pokemon {
+    display: block;
     width: 76px;
     height: 76px;
     object-fit: contain;
+    flex-shrink: 0;
 }
 
 .tipos-pokemon {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
     gap: 8px;
     margin-top: 8px;
     min-height: 24px;
@@ -239,6 +240,15 @@ body {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .tipos-pokemon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        min-height: 24px;
+    }
+
     .imagem-pokemon {
         width: 65px;
         height: 65px;
@@ -250,3 +260,71 @@ body {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+
+
+.imagem-detalhes {
+    display: block;
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    margin: 8px auto;
+}
+
+#detalhes-pokemon h3 {
+    text-align: center;
+    font-size: 18px;
+    text-transform: capitalize;
+    margin-bottom: 6px;
+}
+
+#detalhes-pokemon .tipos-pokemon {
+    margin-top: 4px;
+    margin-bottom: 6px;
+    min-height: 18px;
+    gap: 4px;
+}
+
+.atributos-pokemon {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.atributos-pokemon p {
+    padding: 5px 2px;
+    min-width: 0;
+    border-radius: 5px;
+    background-color: #ffffff;
+    border: 1px solid #f1e5ad;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+}
+
+@media (max-height: 1100px) {
+    .imagem-pokemon {
+        width: 65px;
+        height: 65px;
+    }
+
+    .tipos-pokemon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        min-height: 20px;
+    }
+
+    .icone-tipo {
+        width: 50px;
+        height: 30px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+}
+

@@ -2,9 +2,9 @@
 
 session_start();
 
-require_once "../../controllers/AuthController.php";
+require_once "../../controllers/UsuarioController.php";
 
-$controller = new AuthController();
+$controller = new UsuarioController();
 
 if (isset($_GET["acao"]) && $_GET["acao"] == "sair") {
     $controller->sair();

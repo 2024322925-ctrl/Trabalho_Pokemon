@@ -3,6 +3,7 @@ async function carregarPokemons() {
     const quantidade = document.getElementById("quantidade-pokemons");
     const lista = document.getElementById("lista-pokemons");
     const busca = document.getElementById("busca-pokemon");
+    const detalhes = document.getElementById("detalhes-pokemon");
 
     try {
         const resposta = await fetch("../../../public/api/listarPokemons.php");
@@ -12,7 +13,6 @@ async function carregarPokemons() {
         }
 
         const dados = await resposta.json();
-
         const pokemons = [];
 
         dados.forEach(function (pokemon) {
@@ -29,6 +29,8 @@ async function carregarPokemons() {
                     velocidade: pokemon.velocidade,
                     ataque: pokemon.ataque,
                     defesa: pokemon.defesa,
+                    ataque_especial: pokemon.ataque_especial,
+                    defesa_especial: pokemon.defesa_especial,
                     tipos: []
                 };
 
@@ -36,14 +38,77 @@ async function carregarPokemons() {
             }
 
             if (pokemon.nome_tipo) {
-                pokemonExistente.tipos.push({
-                    nome: pokemon.nome_tipo,
-                    imagem: pokemon.imagem_tipo
+                let tipoExistente = pokemonExistente.tipos.find(function (tipo) {
+                    return tipo.nome == pokemon.nome_tipo;
                 });
+
+                if (!tipoExistente) {
+                    pokemonExistente.tipos.push({
+                        nome: pokemon.nome_tipo,
+                        imagem: pokemon.imagem_tipo
+                    });
+                }
             }
         });
 
         quantidade.textContent = pokemons.length;
+
+        function mostrarDetalhes(pokemon) {
+            detalhes.replaceChildren();
+
+            const nome = document.createElement("h3");
+            nome.textContent = pokemon.nome;
+
+            const imagem = document.createElement("img");
+            imagem.src = pokemon.imagem;
+            imagem.alt = pokemon.nome;
+            imagem.classList.add("imagem-detalhes");
+
+            const tipos = document.createElement("div");
+            tipos.classList.add("tipos-pokemon");
+
+            pokemon.tipos.forEach(function (tipo) {
+                const icone = document.createElement("img");
+                icone.src = tipo.imagem;
+                icone.alt = tipo.nome;
+                icone.title = tipo.nome;
+                icone.classList.add("icone-tipo");
+
+                tipos.appendChild(icone);
+            });
+
+            const atributos = document.createElement("div");
+            atributos.classList.add("atributos-pokemon");
+
+            const hp = document.createElement("p");
+            hp.textContent = `HP: ${pokemon.hp}`;
+
+            const ataque = document.createElement("p");
+            ataque.textContent = `Ataque: ${pokemon.ataque}`;
+
+            const defesa = document.createElement("p");
+            defesa.textContent = `Defesa: ${pokemon.defesa}`;
+
+            const velocidade = document.createElement("p");
+            velocidade.textContent = `Velocidade: ${pokemon.velocidade}`;
+
+            const ataqueEspecial = document.createElement("p");
+            ataqueEspecial.textContent = `Ataque Especial: ${pokemon.ataque_especial}`;
+
+            const defesaEspecial = document.createElement("p");
+            defesaEspecial.textContent = `Defesa Especial: ${pokemon.defesa_especial}`;
+
+            atributos.append(
+                hp,
+                ataque,
+                defesa,
+                ataqueEspecial,
+                defesaEspecial,
+                velocidade
+            );
+
+            detalhes.append(nome, imagem, tipos, atributos);
+        }
 
         function mostrarPokemons(listaPokemons) {
             lista.replaceChildren();
@@ -74,9 +139,11 @@ async function carregarPokemons() {
                     tipos.appendChild(icone);
                 });
 
-                card.appendChild(nome);
-                card.appendChild(imagem);
-                card.appendChild(tipos);
+                card.append(nome, imagem, tipos);
+
+                card.addEventListener("click", function () {
+                    mostrarDetalhes(pokemon);
+                });
 
                 lista.appendChild(card);
             });
