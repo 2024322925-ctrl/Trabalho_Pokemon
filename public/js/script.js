@@ -4,6 +4,10 @@ async function carregarPokemons() {
     const lista = document.getElementById("lista-pokemons");
     const busca = document.getElementById("busca-pokemon");
     const detalhes = document.getElementById("detalhes-pokemon");
+    const slots = document.querySelectorAll(".slot-pokemon");
+
+    let time = [];
+    let pokemonSelecionado = null;
 
     try {
         const resposta = await fetch("../../../public/api/listarPokemons.php");
@@ -54,6 +58,7 @@ async function carregarPokemons() {
         quantidade.textContent = pokemons.length;
 
         function mostrarDetalhes(pokemon) {
+            pokemonSelecionado = pokemon;
             detalhes.replaceChildren();
 
             const nome = document.createElement("h3");
@@ -89,14 +94,16 @@ async function carregarPokemons() {
             const defesa = document.createElement("p");
             defesa.textContent = `Defesa: ${pokemon.defesa}`;
 
-            const velocidade = document.createElement("p");
-            velocidade.textContent = `Velocidade: ${pokemon.velocidade}`;
-
             const ataqueEspecial = document.createElement("p");
-            ataqueEspecial.textContent = `Ataque Especial: ${pokemon.ataque_especial}`;
+            ataqueEspecial.textContent =
+                `Ataque Especial: ${pokemon.ataque_especial}`;
 
             const defesaEspecial = document.createElement("p");
-            defesaEspecial.textContent = `Defesa Especial: ${pokemon.defesa_especial}`;
+            defesaEspecial.textContent =
+                `Defesa Especial: ${pokemon.defesa_especial}`;
+
+            const velocidade = document.createElement("p");
+            velocidade.textContent = `Velocidade: ${pokemon.velocidade}`;
 
             atributos.append(
                 hp,
@@ -107,7 +114,77 @@ async function carregarPokemons() {
                 velocidade
             );
 
-            detalhes.append(nome, imagem, tipos, atributos);
+            const botaoAdicionar = document.createElement("button");
+            botaoAdicionar.textContent = "Adicionar ao time";
+            botaoAdicionar.type = "button";
+
+            botaoAdicionar.addEventListener("click", function () {
+                adicionarPokemon(pokemon);
+            });
+
+            detalhes.append(
+                nome,
+                imagem,
+                tipos,
+                atributos,
+                botaoAdicionar
+            );
+        }
+
+        function mostrarTime() {
+            slots.forEach(function (slot, indice) {
+                slot.replaceChildren();
+
+                if (time[indice]) {
+                    const pokemon = time[indice];
+
+                    const imagem = document.createElement("img");
+                    imagem.src = pokemon.imagem;
+                    imagem.alt = pokemon.nome;
+                    imagem.classList.add("imagem-pokemon-time");
+
+                    const nome = document.createElement("p");
+                    nome.textContent = pokemon.nome;
+
+                    nome.classList.add("nome-pokemon-time");
+
+                    const botaoExcluir = document.createElement("button");
+                    botaoExcluir.textContent = "Excluir";
+                    botaoExcluir.type = "button";
+
+                    botaoExcluir.addEventListener("click", function () {
+                        excluirPokemon(indice);
+                    });
+
+                    slot.append(imagem, nome, botaoExcluir);
+                }
+            });
+        }
+
+        function adicionarPokemon(pokemon) {
+            const pokemonExistente = time.find(function (item) {
+                return item.id_pokemon == pokemon.id_pokemon;
+            });
+
+            if (pokemonExistente) {
+                alert("Esse Pokémon já está no seu time!");
+                return;
+            }
+
+            if (time.length >= 6) {
+                alert("Seu time já está completo!");
+                return;
+            }
+
+            time.push(pokemon);
+
+            mostrarTime();
+        }
+
+        function excluirPokemon(indice) {
+            time.splice(indice, 1);
+
+            mostrarTime();
         }
 
         function mostrarPokemons(listaPokemons) {
@@ -150,6 +227,7 @@ async function carregarPokemons() {
         }
 
         mostrarPokemons(pokemons);
+        mostrarTime();
 
         busca.addEventListener("input", function () {
             const nomePesquisado = busca.value.toLowerCase().trim();
