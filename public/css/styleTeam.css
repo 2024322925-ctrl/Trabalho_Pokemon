@@ -97,6 +97,7 @@ body {
     padding: 8px;
     background-color: #fbe960c8;
     border: 3px solid #3c7397;
+    background-image:url(../imagens/selectpokemon.png);
 }
 
 #detalhes-pokemon p {
