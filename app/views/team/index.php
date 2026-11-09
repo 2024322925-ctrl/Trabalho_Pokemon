@@ -21,7 +21,7 @@ $time = $timeController->buscarTimeAtivo($id_usuario);
 if ($time == null) {
 
     $novoTime = new TimePokemon();
-
+    
     $novoTime->setIdUsuario($id_usuario);
     $novoTime->setNome("Meu time");
     $novoTime->setAtivo(true);
@@ -52,7 +52,13 @@ if ($time == null) {
 </head>
 <body>
 
+    <a href="../home/index.php" class="botao-voltar">
+        Voltar ao início
+    </a>
+
     <main class="team-builder">
+
+        
 
         <header class="cabecalho-team">
             <h1>TEAM BUILDER</h1>
@@ -76,7 +82,7 @@ if ($time == null) {
                 <h2>Detalhes</h2>
 
                 <div id="detalhes-pokemon">
-                    <p>Selecione um Pokémon para ver seus detalhes.</p>
+                     <p style="color: white;">Selecione um Pokémon para ver seus detalhes.</p>
                 </div>
             </aside>
 

@@ -57,6 +57,9 @@ async function carregarPokemons() {
 
         quantidade.textContent = pokemons.length;
 
+        // Busca os Pokémon salvos no banco de dados
+        const respostaTime = await fetch("../../../public/api/gerenciarTime.php");
+
         if (!respostaTime.ok) {
             throw new Error("Erro ao carregar o time.");
         }
