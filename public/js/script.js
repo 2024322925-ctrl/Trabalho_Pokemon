@@ -57,6 +57,27 @@ async function carregarPokemons() {
 
         quantidade.textContent = pokemons.length;
 
+        if (!respostaTime.ok) {
+            throw new Error("Erro ao carregar o time.");
+        }
+
+        const dadosTime = await respostaTime.json();
+
+        if (!dadosTime.sucesso) {
+            throw new Error(dadosTime.mensagem);
+        }
+
+        dadosTime.pokemons.forEach(function (pokemonSalvo) {
+
+            const pokemon = pokemons.find(function (item) {
+                return item.id_pokemon == pokemonSalvo.id_pokemon;
+            });
+
+            if (pokemon) {
+                time.push(pokemon);
+            }
+        });
+
         function mostrarDetalhes(pokemon) {
             pokemonSelecionado = pokemon;
             detalhes.replaceChildren();
@@ -161,7 +182,9 @@ async function carregarPokemons() {
             });
         }
 
-        function adicionarPokemon(pokemon) {
+        
+        async function adicionarPokemon(pokemon) {
+
             const pokemonExistente = time.find(function (item) {
                 return item.id_pokemon == pokemon.id_pokemon;
             });
@@ -176,16 +199,58 @@ async function carregarPokemons() {
                 return;
             }
 
+            const resposta = await fetch("../../../public/api/gerenciarTime.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    acao: "adicionar",
+                    id_pokemon: pokemon.id_pokemon
+                })
+            });
+
+            const resultado = await resposta.json();
+
+            if (!resultado.sucesso) {
+                alert(resultado.mensagem);
+                return;
+            }
+
             time.push(pokemon);
 
             mostrarTime();
         }
 
-        function excluirPokemon(indice) {
+
+        
+        async function excluirPokemon(indice) {
+
+            const pokemon = time[indice];
+
+            const resposta = await fetch("../../../public/api/gerenciarTime.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    acao: "remover",
+                    id_pokemon: pokemon.id_pokemon
+                })
+            });
+
+            const resultado = await resposta.json();
+
+            if (!resultado.sucesso) {
+                alert(resultado.mensagem);
+                return;
+            }
+
             time.splice(indice, 1);
 
             mostrarTime();
         }
+
 
         function mostrarPokemons(listaPokemons) {
             lista.replaceChildren();

@@ -1,12 +1,41 @@
-
 <?php
+
 session_start();
 
 if (!isset($_SESSION["id_usuario"])) {
     header("Location: ../login/index.php");
     exit;
 }
+
+require_once __DIR__ . "/../../controllers/TimePokemonController.php";
+require_once __DIR__ . "/../../models/TimePokemon.php";
+
+$timeController = new TimePokemonController();
+
+$id_usuario = $_SESSION["id_usuario"];
+
+// Procura um time ativo para o usuário
+$time = $timeController->buscarTimeAtivo($id_usuario);
+
+// Se não existir, cria um novo
+if ($time == null) {
+
+    $novoTime = new TimePokemon();
+
+    $novoTime->setIdUsuario($id_usuario);
+    $novoTime->setNome("Meu time");
+    $novoTime->setAtivo(true);
+
+    $id_time = $timeController->cadastrarTime($novoTime);
+
+} else {
+
+    $id_time = $time->getIdTime();
+
+}
+
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -74,6 +103,11 @@ if (!isset($_SESSION["id_usuario"])) {
         </section>
 
     </main>
+
+
+   <script>
+    const idTime = <?= json_encode((int) $id_time) ?>;
+    </script>
 
     <script src="../../../public/js/script.js"></script>
 
