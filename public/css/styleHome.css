@@ -330,6 +330,19 @@ body {
 
 }
 
+.pokemon img {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+/* ESPAÇOS VAZIOS */
+
+.pokemon.vazio {
+    background: rgba(60, 115, 151, 0.35);
+}
+
 .container-menu {
     display: flex;
     align-items: stretch;
