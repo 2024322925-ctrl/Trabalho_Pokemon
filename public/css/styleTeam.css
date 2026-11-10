@@ -17,25 +17,36 @@ body {
 }
 
 .team-builder {
-    width: min(1000px, 94%);
+    width: 100%;
     min-height: 100vh;
     margin: 0 auto;
     padding: 28px 100px;
     background-color: #3c7397d5;
-    border-left: 6px solid #5ce5e8;
-    border-right: 6px solid #5ce5e8;
-    position: relative;    
+    position: relative;
 }
 
 .cabecalho-team {
     text-align: center;
     margin-bottom: 30px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .cabecalho-team h1 {
     color: #fccc0a;
     font-size: 38px;
     margin-bottom: 8px;
+    flex: 1;
+
+    text-align: center;
+
+    font-weight: bold;
+
+    line-height: 1;
+
+    text-shadow:
+        2px 2px #28556f;
 }
 
 .cabecalho-team p {
@@ -49,6 +60,9 @@ body {
         "time detalhes"
         "selecao selecao";
     gap: 28px;
+
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .painel-time {
@@ -341,14 +355,19 @@ body {
 
     transition: 0.2s;
     z-index: 10;
-}
 
-/* TEXTO */
-.botao-voltar span {
+    flex: 1;
+
     text-align: center;
-    font-size: 17px;
+
+    font-size: 22px;
+
     font-weight: bold;
-    text-shadow: 2px 2px #28556f;
+
+    line-height: 1;
+
+    text-shadow:
+        2px 2px #28556f;
 }
 
 /* EFEITO AO PASSAR O MOUSE */
@@ -367,6 +386,15 @@ body {
     box-shadow:
         0 3px 0 #28556f,
         0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.icone-menu img{
+
+    width: 150px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @media (max-width: 700px) {
@@ -415,9 +443,22 @@ body {
         margin-top: 8px;
         min-height: 24px;
     }
+
+    
 }
 
 @media (max-height: 1100px) {
+
+    .icone-menu img{
+
+        width: 50px;
+        height: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 17px;
+    }
+
     .imagem-pokemon {
         width: 65px;
         height: 65px;
@@ -437,6 +478,53 @@ body {
         height: 30px;
         object-fit: contain;
         flex-shrink: 0;
+    }
+
+    .botao-voltar {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+    
+        width: 180px;
+        height: 67px;
+    
+        background: #3c7397;
+        border: 3px solid #5ce5e8;
+    
+        border-radius: 0px;
+    
+        box-shadow:
+            0 7px 0 #28556f,
+            0 10px 18px rgba(0, 0, 0, 0.35);
+    
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    
+        text-decoration: none;
+        color: #fccc0a;
+    
+        transition: 0.2s;
+        z-index: 10;
+        font-size: 14px;
+    }
+    
+    /* EFEITO AO PASSAR O MOUSE */
+    .botao-voltar:hover {
+        transform: translateY(-4px);
+    
+        box-shadow:
+            0 11px 0 #28556f,
+            0 14px 20px rgba(0, 0, 0, 0.35);
+    }
+    
+    /* EFEITO AO CLICAR */
+    .botao-voltar:active {
+        transform: translateY(3px);
+    
+        box-shadow:
+            0 3px 0 #28556f,
+            0 5px 10px rgba(0, 0, 0, 0.3);
     }
 
 }

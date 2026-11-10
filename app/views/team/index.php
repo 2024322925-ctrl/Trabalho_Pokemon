@@ -53,7 +53,10 @@ if ($time == null) {
 <body>
 
     <a href="../home/index.php" class="botao-voltar">
-        Voltar ao início
+    <div class="icone-menu">
+    <img src="../../../public/imagens/pikachu.png" alt="icone">
+    </div>
+    Voltar ao<br>início
     </a>
 
     <main class="team-builder">
