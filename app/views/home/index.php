@@ -60,7 +60,7 @@ if ($time) {
 
             <a href="../batalha/index.php" class="botao-menu">
                 <div class="icone-menu">
-                    <img src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
+                    <img style="width: 120px; height: auto;" src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
                 </div>
                 <span>BATALHA</span>
             </a>

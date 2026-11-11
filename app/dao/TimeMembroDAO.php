@@ -14,16 +14,53 @@ class TimeMembroDAO {
     }
 
     public function adicionar(TimeMembro $membro) {
-        $sql = "INSERT INTO time_membro (id_time, id_pokemon, posicao)
-                VALUES (:id_time, :id_pokemon, :posicao)";
 
-        $stmt = $this->conexao->prepare($sql);
+        try {
 
-        $stmt->bindValue(":id_time", $membro->getIdTime(), PDO::PARAM_INT);
-        $stmt->bindValue(":id_pokemon", $membro->getIdPokemon(), PDO::PARAM_INT);
-        $stmt->bindValue(":posicao", $membro->getPosicao(), PDO::PARAM_INT);
+            $this->conexao->beginTransaction();
 
-        return $stmt->execute();
+            // Adiciona o Pokémon ao time
+            $sql = "INSERT INTO time_membro (id_time, id_pokemon, posicao)
+                    VALUES (:id_time, :id_pokemon, :posicao)";
+
+            $stmt = $this->conexao->prepare($sql);
+
+            $stmt->bindValue(":id_time", $membro->getIdTime(), PDO::PARAM_INT);
+            $stmt->bindValue(":id_pokemon", $membro->getIdPokemon(), PDO::PARAM_INT);
+            $stmt->bindValue(":posicao", $membro->getPosicao(), PDO::PARAM_INT);
+
+            $stmt->execute();
+
+
+            // Cria automaticamente o status inicial do Pokémon
+            $sqlStatus = "INSERT INTO pokemon_time_status
+                          (id_time, id_pokemon, hp_atual, status_atual)
+                          SELECT
+                              :id_time,
+                              :id_pokemon,
+                              hp,
+                              NULL
+                          FROM pokemon
+                          WHERE id_pokemon = :id_pokemon_busca";
+
+            $stmtStatus = $this->conexao->prepare($sqlStatus);
+
+            $stmtStatus->bindValue(":id_time", $membro->getIdTime(), PDO::PARAM_INT);
+            $stmtStatus->bindValue(":id_pokemon", $membro->getIdPokemon(), PDO::PARAM_INT);
+            $stmtStatus->bindValue(":id_pokemon_busca", $membro->getIdPokemon(), PDO::PARAM_INT);
+
+            $stmtStatus->execute();
+
+            $this->conexao->commit();
+
+            return true;
+
+        } catch (PDOException $e) {
+
+            $this->conexao->rollBack();
+
+            throw $e;
+        }
     }
 
     public function listarPorTime($id_time) {

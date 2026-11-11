@@ -149,6 +149,19 @@ create table evolucao(
     foreign key(id_item) references item(id_item)
 );
 
+CREATE TABLE pokemon_time_status(
+    id_time INT NOT NULL,
+    id_pokemon INT NOT NULL,
+    hp_atual INT NOT NULL,
+    status_atual VARCHAR(30) DEFAULT NULL,
+
+    PRIMARY KEY (id_time, id_pokemon),
+
+    FOREIGN KEY (id_time, id_pokemon)
+    REFERENCES time_membro(id_time, id_pokemon)
+    ON DELETE CASCADE
+);
+
 ALTER TABLE pokemon
 ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
 

@@ -285,54 +285,41 @@ body {
 }
 
 
-/* TIME */
-
 .time {
-
     margin-top: 15px;
-
     padding: 8px;
 
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
 
-    justify-content: center;
-
+    justify-items: center;
     gap: 7px;
 
     background: rgba(255, 255, 255, 0.25);
-
     border-radius: 8px;
-
 }
 
-
-/* POKÉMON */
+/* ESPAÇOS DOS POKÉMON */
 
 .pokemon {
+    width: 48px;
+    height: 48px;
 
-    width: 45px;
-
-    height: 45px;
-
-    background: #3c7397;
-
+    background: #3c7397a2;
     border-radius: 7px;
+    border: 1px solid #5ce5e8;
 
     display: flex;
-
     justify-content: center;
-
     align-items: center;
-
-    color: #fccc0a;
-
-    font-size: 22px;
-
 }
 
+/* IMAGENS DOS POKÉMON */
+
 .pokemon img {
-    width: 45px;
-    height: 45px;
+    width: 38px;
+    height: 38px;
+
     object-fit: contain;
     image-rendering: pixelated;
 }
@@ -347,6 +334,10 @@ body {
     display: flex;
     align-items: stretch;
     gap: 30px;
+}
+
+.coluna-menu .botao-menu:nth-child(2) .icone-menu img {
+    transform: scale(1.18);
 }
 
 @media (max-height: 800px) and (min-width: 769px) {
