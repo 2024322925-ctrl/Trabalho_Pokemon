@@ -32,7 +32,11 @@ class PokemonAPI
             "status_atual" => null,
             "ativo" => true,
             "imagem" => $dados["sprites"]["versions"]["generation-v"]["black-white"]["animated"]["front_default"]
+            ?? $dados["sprites"]["versions"]["generation-v"]["black-white"]["front_default"]
             ?? $dados["sprites"]["front_default"],
+            "imagem_costas" => $dados["sprites"]["versions"]["generation-v"]["black-white"]["animated"]["back_default"]
+            ?? $dados["sprites"]["versions"]["generation-v"]["black-white"]["back_default"]
+            ?? $dados["sprites"]["back_default"],
             "tipos" => []
         ];
 

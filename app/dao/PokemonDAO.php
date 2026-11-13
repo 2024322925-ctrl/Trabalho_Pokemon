@@ -26,7 +26,8 @@ class PokemonDAO
                     defesa_especial,
                     status_atual,
                     ativo,
-                    imagem
+                    imagem,
+                    imagem_costas
                 ) VALUES (
                     :nome,
                     :hp,
@@ -38,7 +39,8 @@ class PokemonDAO
                     :defesa_especial,
                     :status_atual,
                     :ativo,
-                    :imagem
+                    :imagem,
+                    :imagem_costas
                 )";
 
         $stmt = $this->conexao->prepare($sql);
@@ -54,6 +56,7 @@ class PokemonDAO
         $stmt->bindValue(":status_atual", $pokemon->getStatus_atual());
         $stmt->bindValue(":ativo", $pokemon->getAtivo());
         $stmt->bindValue(":imagem", $pokemon->getImagem());
+        $stmt->bindValue(":imagem_costas", $pokemon->getImagem_costas());
 
         return $stmt->execute();
     }
@@ -87,6 +90,7 @@ class PokemonDAO
         $pokemon->setStatus_atual($dados["status_atual"]);
         $pokemon->setAtivo($dados["ativo"]);
         $pokemon->setImagem($dados["imagem"]);
+        $pokemon->setImagem_costas($dados["imagem_costas"]);
 
         return $pokemon;
     }
@@ -140,7 +144,8 @@ class PokemonDAO
                             defesa_especial = :defesa_especial,
                             status_atual = :status_atual,
                             ativo = :ativo,
-                            imagem = :imagem
+                            imagem = :imagem,
+                            imagem_costas = :imagem_costas
                         WHERE id_pokemon = :id_pokemon";
 
                 $stmt = $this->conexao->prepare($sql);
@@ -171,6 +176,7 @@ class PokemonDAO
             $stmt->bindValue(":status_atual", $dados["status_atual"]);
             $stmt->bindValue(":ativo", $dados["ativo"], PDO::PARAM_BOOL);
             $stmt->bindValue(":imagem", $dados["imagem"]);
+            $stmt->bindValue(":imagem_costas", $dados["imagem_costas"]);
 
             $stmt->execute();
 

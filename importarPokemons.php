@@ -28,13 +28,13 @@ for ($id = 1; $id <= 151; $id++) {
             . " importado com sucesso!\n";
 
     } catch (Throwable $e) {
-        $erros++;
+    $erros++;
 
-        echo "[$id/151] Erro ao importar o Pokémon de ID $id.\n";
-        error_log(
-            "Erro ao importar Pokémon $id: " . $e->getMessage()
-        );
-    }
+    echo "[$id/151] Erro ao importar o Pokémon de ID $id.\n";
+    error_log(
+        "Erro ao importar Pokémon $id: " . $e->getMessage()
+    );
+}
 
     // Atualiza a saída no navegador
     flush();

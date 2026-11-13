@@ -29,6 +29,7 @@ async function carregarPokemons() {
                     id_pokemon: pokemon.id_pokemon,
                     nome: pokemon.nome,
                     imagem: pokemon.imagem,
+                    imagem_costas: pokemon.imagem_costas,
                     hp: pokemon.hp,
                     velocidade: pokemon.velocidade,
                     ataque: pokemon.ataque,

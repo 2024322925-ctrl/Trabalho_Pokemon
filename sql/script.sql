@@ -168,6 +168,9 @@ ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
 ALTER TABLE tipo
 ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
 
+ALTER TABLE pokemon
+ADD COLUMN imagem_costas VARCHAR(255) DEFAULT NULL;
+
 UPDATE tipo
 SET imagem = CASE nome
     WHEN 'normal'   THEN 'https://raw.githubusercontent.com/PokeAPI/sprites/refs/heads/master/sprites/types/generation-ix/scarlet-violet/1.png'
