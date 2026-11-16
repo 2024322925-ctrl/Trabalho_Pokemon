@@ -31,7 +31,8 @@ create table pokemon(
     ataque_especial int not null,
     defesa_especial int not null, 
     status_atual varchar(30) default null,
-    ativo boolean default true
+    ativo boolean default true,
+    imagem_costas VARCHAR(255) DEFAULT NULL
 );
 
 
@@ -167,9 +168,6 @@ ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
 
 ALTER TABLE tipo
 ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
-
-ALTER TABLE pokemon
-ADD COLUMN imagem_costas VARCHAR(255) DEFAULT NULL;
 
 UPDATE tipo
 SET imagem = CASE nome

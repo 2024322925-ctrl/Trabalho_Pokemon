@@ -153,14 +153,16 @@ class PokemonDAO
             } else {
                 // Cadastra um novo Pokémon
                 $sql = "INSERT INTO pokemon (
-                            nome, hp, hp_atual, velocidade,
-                            ataque, defesa, ataque_especial,
-                            defesa_especial, status_atual, ativo, imagem
-                        ) VALUES (
-                            :nome, :hp, :hp_atual, :velocidade,
-                            :ataque, :defesa, :ataque_especial,
-                            :defesa_especial, :status_atual, :ativo, :imagem
-                        )";
+                        nome, hp, hp_atual, velocidade,
+                        ataque, defesa, ataque_especial,
+                        defesa_especial, status_atual, ativo,
+                        imagem, imagem_costas
+                    ) VALUES (
+                        :nome, :hp, :hp_atual, :velocidade,
+                        :ataque, :defesa, :ataque_especial,
+                        :defesa_especial, :status_atual, :ativo,
+                        :imagem, :imagem_costas
+                    )";
 
                 $stmt = $this->conexao->prepare($sql);
                 $stmt->bindValue(":nome", $dados["nome"]);
