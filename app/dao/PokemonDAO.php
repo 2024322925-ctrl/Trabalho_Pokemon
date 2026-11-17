@@ -187,6 +187,14 @@ class PokemonDAO
                 $idPokemon = $this->conexao->lastInsertId();
             }
 
+            // Remove as associações antigas de tipos
+            $sqlExcluirTipos = "DELETE FROM pokemon_tipo
+                                WHERE id_pokemon = :id_pokemon";
+
+            $stmtExcluirTipos = $this->conexao->prepare($sqlExcluirTipos);
+            $stmtExcluirTipos->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
+            $stmtExcluirTipos->execute();
+
             // Salva os tipos e associa ao Pokémon
             foreach ($dados["tipos"] as $nomeTipo) {
                 $sql = "SELECT id_tipo

@@ -9,7 +9,7 @@ class PokemonAPI
     {
         $url = $this->urlBase . strtolower($nomeOuId);
 
-        $resposta = @file_get_contents($url);
+        $resposta = file_get_contents($url);
 
         if ($resposta === false) {
             throw new Exception("Não foi possível acessar a PokéAPI.");
@@ -17,7 +17,7 @@ class PokemonAPI
 
         $dados = json_decode($resposta, true);
 
-        if ($dados === null) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception("Não foi possível interpretar os dados da API.");
         }
 

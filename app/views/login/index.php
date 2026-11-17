@@ -25,8 +25,18 @@ if (isset($_POST["registro"])) {
     );
 
     if ($resultado) {
+
+        $usuario = $controller->login($email, $senha);
+
+        $_SESSION["id_usuario"] = $usuario->getId_usuario();
+        $_SESSION["nome"] = $usuario->getNome();
+        $_SESSION["sobrenome"] = $usuario->getSobrenome();
+        $_SESSION["email"] = $usuario->getEmail();
+        $_SESSION["perfil"] = $usuario->getPerfil();
+
         header("Location: ../home/index.php");
         exit();
+
     } else {
         header("Location: index.php?erro=email");
         exit();
@@ -46,10 +56,10 @@ if (isset($_POST["entrar"])) {
         $_SESSION["nome"] = $usuario->getNome();
         $_SESSION["sobrenome"] = $usuario->getSobrenome();
         $_SESSION["email"] = $usuario->getEmail();
+        $_SESSION["perfil"] = $usuario->getPerfil();
 
         header("Location: ../home/index.php");
         exit();
-
     } else {
 
         header("Location: index.php?erro=login");
@@ -96,8 +106,8 @@ if (isset($_POST["entrar"])) {
         </div>
         <div class="input-group">
             <i class="fas fa-lock"></i>
-            <input type="password" name="senha" id="senha" placeholder="Senha" required>
-            <label for="senha">Senha</label>
+            <input type="password" name="senha" id="senhaRegistro" placeholder="Senha" required>
+            <label for="senhaRegistro">Senha</label>
         </div>
 
         <p id="mensagemRegistro" class="erro-login"></p>
@@ -124,8 +134,8 @@ if (isset($_POST["entrar"])) {
         </div>
         <div class="input-group">
             <i class="fas fa-lock"></i>
-            <input type="password" name="senha" id="senha" placeholder="Senha" required>
-            <label for="senha">Senha</label>
+            <input type="password" name="senha" id="senhaLogin" placeholder="Senha" required>
+            <label for="senhaLogin">Senha</label>
         </div>
         <p id="mensagem" class="erro-login"></p>
         

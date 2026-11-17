@@ -22,6 +22,15 @@ if (!isset($_SESSION["id_usuario"])) {
     ]);
 }
 
+if (!in_array($_SERVER["REQUEST_METHOD"], ["GET", "POST"])) {
+    http_response_code(405);
+
+    responder([
+        "sucesso" => false,
+        "mensagem" => "Método não permitido."
+    ]);
+}
+
 $usuarioId = $_SESSION["id_usuario"];
 
 $timeController = new TimePokemonController();
@@ -55,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $dados = json_decode(file_get_contents("php://input"), true);
 
-    if (!is_array($dados)) {
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($dados)) {
         responder([
             "sucesso" => false,
             "mensagem" => "Dados inválidos."

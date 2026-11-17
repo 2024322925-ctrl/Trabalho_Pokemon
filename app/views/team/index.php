@@ -18,7 +18,7 @@ $id_usuario = $_SESSION["id_usuario"];
 $time = $timeController->buscarTimeAtivo($id_usuario);
 
 // Se não existir, cria um novo
-if ($time == null) {
+if ($time === null) {
 
     $novoTime = new TimePokemon();
     

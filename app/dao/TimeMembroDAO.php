@@ -57,7 +57,9 @@ class TimeMembroDAO {
 
         } catch (PDOException $e) {
 
-            $this->conexao->rollBack();
+            if ($this->conexao->inTransaction()) {
+                $this->conexao->rollBack();
+            }
 
             throw $e;
         }

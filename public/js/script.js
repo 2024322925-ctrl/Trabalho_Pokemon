@@ -7,7 +7,6 @@ async function carregarPokemons() {
     const slots = document.querySelectorAll(".slot-pokemon");
 
     let time = [];
-    let pokemonSelecionado = null;
 
     try {
         const resposta = await fetch("../../../public/api/listarPokemons.php");
@@ -72,7 +71,6 @@ async function carregarPokemons() {
         }
 
         dadosTime.pokemons.forEach(function (pokemonSalvo) {
-
             const pokemon = pokemons.find(function (item) {
                 return item.id_pokemon == pokemonSalvo.id_pokemon;
             });
@@ -83,7 +81,6 @@ async function carregarPokemons() {
         });
 
         function mostrarDetalhes(pokemon) {
-            pokemonSelecionado = pokemon;
             detalhes.replaceChildren();
 
             const nome = document.createElement("h3");
@@ -186,9 +183,7 @@ async function carregarPokemons() {
             });
         }
 
-        
         async function adicionarPokemon(pokemon) {
-
             const pokemonExistente = time.find(function (item) {
                 return item.id_pokemon == pokemon.id_pokemon;
             });
@@ -203,58 +198,82 @@ async function carregarPokemons() {
                 return;
             }
 
-            const resposta = await fetch("../../../public/api/gerenciarTime.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    acao: "adicionar",
-                    id_pokemon: pokemon.id_pokemon
-                })
-            });
+            try {
+                const resposta = await fetch("../../../public/api/gerenciarTime.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        acao: "adicionar",
+                        id_pokemon: pokemon.id_pokemon
+                    })
+                });
 
-            const resultado = await resposta.json();
+                const resultado = await resposta.json();
 
-            if (!resultado.sucesso) {
-                alert(resultado.mensagem);
-                return;
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.mensagem || "Erro ao adicionar Pokémon."
+                    );
+                }
+
+                if (!resultado.sucesso) {
+                    alert(resultado.mensagem);
+                    return;
+                }
+
+                time.push(pokemon);
+
+                mostrarTime();
+
+            } catch (erro) {
+                console.error("Erro ao adicionar Pokémon:", erro);
+                alert("Não foi possível adicionar o Pokémon. Tente novamente.");
             }
-
-            time.push(pokemon);
-
-            mostrarTime();
         }
 
-
-        
         async function excluirPokemon(indice) {
-
             const pokemon = time[indice];
 
-            const resposta = await fetch("../../../public/api/gerenciarTime.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    acao: "remover",
-                    id_pokemon: pokemon.id_pokemon
-                })
-            });
-
-            const resultado = await resposta.json();
-
-            if (!resultado.sucesso) {
-                alert(resultado.mensagem);
+            if (!pokemon) {
                 return;
             }
 
-            time.splice(indice, 1);
+            try {
+                const resposta = await fetch("../../../public/api/gerenciarTime.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        acao: "remover",
+                        id_pokemon: pokemon.id_pokemon
+                    })
+                });
 
-            mostrarTime();
+                const resultado = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.mensagem || "Erro ao remover Pokémon."
+                    );
+                }
+
+                if (!resultado.sucesso) {
+                    alert(resultado.mensagem);
+                    return;
+                }
+
+                time.splice(indice, 1);
+
+                mostrarTime();
+
+            } catch (erro) {
+                console.error("Erro ao remover Pokémon:", erro);
+                alert("Não foi possível remover o Pokémon. Tente novamente.");
+            }
         }
-
 
         function mostrarPokemons(listaPokemons) {
             lista.replaceChildren();
