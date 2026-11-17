@@ -14,6 +14,7 @@ class Pokemon
     private $status_atual;
     private $ativo;
     private $imagem;
+    private $imagem_costas;
 
     public function getId_pokemon()
     {
@@ -133,5 +134,15 @@ class Pokemon
     public function setImagem($imagem)
     {
         $this->imagem = $imagem;
+    }
+
+    public function getImagem_costas()
+    {
+        return $this->imagem_costas;
+    }
+
+    public function setImagem_costas($imagem_costas)
+    {
+        $this->imagem_costas = $imagem_costas;
     }
 }

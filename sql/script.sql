@@ -31,7 +31,8 @@ create table pokemon(
     ataque_especial int not null,
     defesa_especial int not null, 
     status_atual varchar(30) default null,
-    ativo boolean default true
+    ativo boolean default true,
+    imagem_costas VARCHAR(255) DEFAULT NULL
 );
 
 
@@ -149,6 +150,30 @@ create table evolucao(
     foreign key(id_item) references item(id_item)
 );
 
+CREATE TABLE pokemon_time_status(
+    id_time INT NOT NULL,
+    id_pokemon INT NOT NULL,
+    hp_atual INT NOT NULL,
+    status_atual VARCHAR(30) DEFAULT NULL,
+
+    PRIMARY KEY (id_time, id_pokemon),
+
+    FOREIGN KEY (id_time, id_pokemon)
+    REFERENCES time_membro(id_time, id_pokemon)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE log_batalha(
+    id_batalha INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    resultado VARCHAR(20) NOT NULL,
+    recompensa DECIMAL(10,2) NOT NULL DEFAULT 0,
+    data_batalha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(id_usuario) REFERENCES usuario(id_usuario)
+);
+
+
 ALTER TABLE pokemon
 ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
 
@@ -181,3 +206,75 @@ WHERE nome IN (
     'bug', 'ghost', 'steel', 'fire', 'water', 'grass',
     'electric', 'psychic', 'ice', 'dragon', 'fairy'
 );
+
+DELIMITER //
+
+CREATE TRIGGER criar_carteira_usuario
+AFTER INSERT ON usuario
+FOR EACH ROW
+BEGIN
+    INSERT INTO carteira (id_usuario, saldo)
+    VALUES (NEW.id_usuario, 0);
+END //
+
+DELIMITER ;
+
+CREATE VIEW vw_usuario_carteira AS
+SELECT
+    u.id_usuario,
+    u.nome,
+    u.sobrenome,
+    u.email,
+    u.perfil,
+    c.saldo
+FROM usuario u
+LEFT JOIN carteira c
+    ON u.id_usuario = c.id_usuario;
+
+CREATE VIEW vw_pokemon_tipos AS
+SELECT
+    p.id_pokemon,
+    p.nome,
+    p.hp,
+    p.velocidade,
+    p.ataque,
+    p.defesa,
+    p.ataque_especial,
+    p.defesa_especial,
+    p.imagem,
+    p.imagem_costas,
+    t.nome AS tipo
+FROM pokemon p
+INNER JOIN pokemon_tipo pt
+    ON p.id_pokemon = pt.id_pokemon
+INNER JOIN tipo t
+    ON pt.id_tipo = t.id_tipo;
+
+CREATE VIEW vw_time_pokemon AS
+SELECT
+    u.id_usuario,
+    u.nome AS nome_usuario,
+    tp.id_time,
+    tp.nome AS nome_time,
+    tm.posicao,
+    p.id_pokemon,
+    p.nome AS nome_pokemon,
+    p.hp,
+    p.velocidade,
+    p.ataque,
+    p.defesa,
+    p.ataque_especial,
+    p.defesa_especial,
+    COALESCE(pts.hp_atual, p.hp_atual) AS hp_atual,
+    COALESCE(pts.status_atual, p.status_atual) AS status_atual
+FROM time_pokemon tp
+INNER JOIN usuario u
+    ON tp.id_usuario = u.id_usuario
+INNER JOIN time_membro tm
+    ON tp.id_time = tm.id_time
+INNER JOIN pokemon p
+    ON tm.id_pokemon = p.id_pokemon
+LEFT JOIN pokemon_time_status pts
+    ON tm.id_time = pts.id_time
+    AND tm.id_pokemon = pts.id_pokemon
+WHERE tp.ativo = 1;

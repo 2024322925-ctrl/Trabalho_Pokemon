@@ -8,7 +8,7 @@ class PokemonAPI
     {
         $url = $this->urlBase . strtolower($nomeOuId);
 
-        $resposta = @file_get_contents($url);
+        $resposta = file_get_contents($url);
 
         if ($resposta === false) {
             throw new Exception("Não foi possível acessar a PokéAPI.");
@@ -16,9 +16,12 @@ class PokemonAPI
 
         $dados = json_decode($resposta, true);
 
-        if ($dados === null) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception("Não foi possível interpretar os dados da API.");
         }
+
+        // ID original do Pokémon na PokéAPI
+        $idPokemon = $dados["id"];
 
         $pokemon = [
             "nome" => $dados["name"],
@@ -31,11 +34,17 @@ class PokemonAPI
             "defesa_especial" => 0,
             "status_atual" => null,
             "ativo" => true,
-            "imagem" => $dados["sprites"]["versions"]["generation-v"]["black-white"]["animated"]["front_default"]
-            ?? $dados["sprites"]["front_default"],
+
+            // Imagem animada de frente
+            "imagem" => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/" . $idPokemon . ".gif",
+
+            // Imagem animada de costas
+            "imagem_costas" => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/back/" . $idPokemon . ".gif",
+
             "tipos" => []
         ];
 
+        // Busca os atributos do Pokémon
         foreach ($dados["stats"] as $stat) {
             switch ($stat["stat"]["name"]) {
                 case "hp":
@@ -65,6 +74,7 @@ class PokemonAPI
             }
         }
 
+        // Busca os tipos do Pokémon
         foreach ($dados["types"] as $tipo) {
             $pokemon["tipos"][] = $tipo["type"]["name"];
         }
@@ -72,3 +82,5 @@ class PokemonAPI
         return $pokemon;
     }
 }
+
+?>

@@ -9,6 +9,24 @@ if (!isset($_SESSION["id_usuario"])) {
 
 $nome = $_SESSION["nome"];
 $sobrenome = $_SESSION["sobrenome"];
+
+require_once __DIR__ . "/../../controllers/TimePokemonController.php";
+require_once __DIR__ . "/../../controllers/TimeMembroController.php";
+
+// Busca o time ativo do usuário
+$timeController = new TimePokemonController();
+$time = $timeController->buscarTimeAtivo($_SESSION["id_usuario"]);
+
+// Busca os Pokémon do time
+$pokemonsTime = [];
+
+if ($time) {
+    $membroController = new TimeMembroController();
+
+    $pokemonsTime = $membroController->listarPokemonsDoTime(
+        $time->getIdTime()
+    );
+}
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +60,7 @@ $sobrenome = $_SESSION["sobrenome"];
 
             <a href="../batalha/index.php" class="botao-menu">
                 <div class="icone-menu">
-                    <img src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
+                    <img style="width: 120px; height: auto;" src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
                 </div>
                 <span>BATALHA</span>
             </a>
@@ -82,23 +100,29 @@ $sobrenome = $_SESSION["sobrenome"];
 
             </div>
 
+            
             <div class="time">
-                <div class="pokemon">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
 
-                <div class="pokemon">
-                    <i class="fa-solid fa-leaf"></i>
-                </div>
+                <?php foreach ($pokemonsTime as $pokemon): ?>
 
-                <div class="pokemon">
-                    <i class="fa-solid fa-fire"></i>
-                </div>
+                    <div class="pokemon">
+                        <img
+                            src="<?= htmlspecialchars($pokemon["imagem"]) ?>"
+                            alt="<?= htmlspecialchars($pokemon["nome"]) ?>"
+                            title="<?= htmlspecialchars($pokemon["nome"]) ?>"
+                        >
+                    </div>
 
-                <div class="pokemon">
-                    <i class="fa-solid fa-droplet"></i>
-                </div>
+                <?php endforeach; ?>
+
+                <?php for ($i = count($pokemonsTime); $i < 6; $i++): ?>
+
+                    <div class="pokemon vazio"></div>
+
+                <?php endfor; ?>
+
             </div>
+
 
         </div>
         </div>

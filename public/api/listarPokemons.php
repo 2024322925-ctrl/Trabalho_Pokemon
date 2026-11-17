@@ -15,6 +15,8 @@ try {
     );
 
 } catch (Throwable $e) {
+    error_log("Erro ao listar Pokémon: " . $e->getMessage());
+
     http_response_code(500);
 
     echo json_encode([
