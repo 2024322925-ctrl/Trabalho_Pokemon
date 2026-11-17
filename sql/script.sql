@@ -278,3 +278,20 @@ LEFT JOIN pokemon_time_status pts
     ON tm.id_time = pts.id_time
     AND tm.id_pokemon = pts.id_pokemon
 WHERE tp.ativo = 1;
+
+DROP TRIGGER IF EXISTS atualizar_inventario_compra;
+
+CREATE TRIGGER atualizar_inventario_compra
+AFTER INSERT ON compra_item
+FOR EACH ROW
+
+INSERT INTO inventario (id_usuario, id_item, quantidade)
+SELECT
+    c.id_usuario,
+    NEW.id_item,
+    NEW.quantidade
+FROM compra c
+WHERE c.id_compra = NEW.id_compra
+
+ON DUPLICATE KEY UPDATE
+    quantidade = quantidade + NEW.quantidade;
