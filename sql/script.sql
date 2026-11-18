@@ -40,6 +40,7 @@ create table item(
     id_item int AUTO_INCREMENT primary key,
     nome varchar(50) not null unique,
     descricao varchar(255),
+    imagem_item VARCHAR(500) NULL,
     preco decimal(10,2) not null,
     tipo varchar(30) not null,
     quantidade int default null,
@@ -206,6 +207,47 @@ WHERE nome IN (
     'bug', 'ghost', 'steel', 'fire', 'water', 'grass',
     'electric', 'psychic', 'ice', 'dragon', 'fairy'
 );
+
+INSERT INTO item
+(nome, descricao, imagem_item, preco, tipo)
+VALUES
+(
+    'Fire Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com fogo.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fire-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Water Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com água.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/water-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Thunder Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com eletricidade.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Leaf Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com planta.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leaf-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Ice Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com gelo.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ice-stone.png',
+    3000.00,
+    'evolucao'
+);
+
+
 
 DELIMITER //
 

@@ -180,6 +180,8 @@ body {
 .lista-itens {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(320px, auto);
+    align-items: stretch;
     gap: 18px;
 }
 
@@ -188,10 +190,12 @@ body {
 
 .card-item {
     min-width: 0;
+    min-height: 320px;
     padding: 16px;
 
     display: flex;
     flex-direction: column;
+    align-self: stretch;
     gap: 10px;
 
     background-color: #edf6fc;
@@ -232,12 +236,12 @@ body {
     color: #3c7397;
 }
 
-.card-item p:nth-of-type(3) {
-    color: #28556f;
-    font-size: 18px;
+.card-item p.valor-preco {
+    font-family: Arial, sans-serif;
+    font-size: 17px;
     font-weight: bold;
+    color: #28556f;
 }
-
 
 /* CAMPO DE QUANTIDADE */
 
@@ -251,6 +255,9 @@ body {
     color: #315b78;
     font-size: 17px;
     text-align: center;
+
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .quantidade-item:focus {
@@ -264,6 +271,7 @@ body {
 .card-item button {
     width: 100%;
     padding: 10px;
+    flex-shrink: 0;
 
     background-color: #3c7397;
     border: 3px solid #5ce5e8;
@@ -277,6 +285,7 @@ body {
 
     cursor: pointer;
     transition: 0.2s;
+    margin-top: 0;
 }
 
 .card-item button:hover {
@@ -384,4 +393,22 @@ body {
         font-size: 28px;
     }
 
+}
+
+
+/* IMAGENS DOS ITENS */
+
+.imagem-item {
+    display: block;
+
+    width: 90px;
+    height: 90px;
+
+    object-fit: contain;
+
+    /* Preserva os pixels originais */
+    image-rendering: pixelated;
+
+    align-self: center;
+    margin: 5px auto 10px;
 }

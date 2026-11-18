@@ -15,7 +15,7 @@ class ItemDAO
 
     public function listarItensDisponiveis()
     {
-        $sql = "SELECT id_item, nome, descricao, preco, tipo
+        $sql = "SELECT id_item, nome, descricao, imagem_item, preco, tipo
                 FROM item
                 WHERE disponivel = 1
                 ORDER BY tipo, nome";

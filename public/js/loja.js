@@ -48,6 +48,8 @@ async function carregarLoja() {
 }
 
 // Cria os cards dos itens
+
+// Cria os cards dos itens
 function exibirItens(itens) {
 
     listaItens.replaceChildren();
@@ -62,6 +64,18 @@ function exibirItens(itens) {
         const card = document.createElement("article");
         card.classList.add("card-item");
 
+        // Imagem do item
+        if (item.imagem_item) {
+            const imagem = document.createElement("img");
+
+            imagem.src = item.imagem_item;
+            imagem.alt = "Imagem de " + item.nome;
+            imagem.classList.add("imagem-item");
+            imagem.loading = "lazy";
+
+            card.appendChild(imagem);
+        }
+
         const nome = document.createElement("h3");
         nome.textContent = item.nome;
 
@@ -72,6 +86,7 @@ function exibirItens(itens) {
         tipo.textContent = "Categoria: " + item.tipo;
 
         const preco = document.createElement("p");
+        preco.classList.add("valor-preco");
         preco.textContent = "Preço: " + formatarPreco(item.preco);
 
         const quantidade = document.createElement("input");
@@ -80,14 +95,21 @@ function exibirItens(itens) {
         quantidade.step = "1";
         quantidade.value = "1";
         quantidade.classList.add("quantidade-item");
-        quantidade.setAttribute("aria-label", "Quantidade de " + item.nome);
+        quantidade.setAttribute(
+            "aria-label",
+            "Quantidade de " + item.nome
+        );
 
         const botaoComprar = document.createElement("button");
         botaoComprar.type = "button";
         botaoComprar.textContent = "Comprar";
 
         botaoComprar.addEventListener("click", () => {
-            comprarItem(item.id_item, quantidade.value, botaoComprar);
+            comprarItem(
+                item.id_item,
+                quantidade.value,
+                botaoComprar
+            );
         });
 
         card.append(
@@ -102,6 +124,7 @@ function exibirItens(itens) {
         listaItens.appendChild(card);
     });
 }
+
 
 // Realiza a compra de um item
 async function comprarItem(idItem, quantidade, botao) {
