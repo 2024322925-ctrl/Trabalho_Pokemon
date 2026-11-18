@@ -108,7 +108,7 @@ class PokemonDAO
                 LEFT JOIN tipo t
                     ON pt.id_tipo = t.id_tipo
                 WHERE p.ativo = 1
-                ORDER BY p.nome";
+                ORDER BY p.id_pokemon ASC";
 
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute();
