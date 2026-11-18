@@ -25,4 +25,25 @@ class ItemDAO
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function atualizarDadosDaAPI($id_item, $nome, $imagem)
+    {
+        $sql = "UPDATE item
+                SET nome = :nome,
+                    imagem_item = COALESCE(:imagem, imagem_item)
+                WHERE id_item = :id_item";
+
+        $stmt = $this->con->prepare($sql);
+
+        $stmt->bindValue(":nome", $nome);
+        $stmt->bindValue(
+            ":imagem",
+            $imagem,
+            $imagem === null ? PDO::PARAM_NULL : PDO::PARAM_STR
+        );
+        $stmt->bindValue(":id_item", $id_item, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
 }
+?>
