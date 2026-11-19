@@ -1,0 +1,232 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Pixelify Sans", sans-serif;
+}
+
+body {
+    min-height: 100vh;
+
+    background-image: url("../imagens/batalha3.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+
+    color: #315b78;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Painel azul transparente */
+
+.pagina-fases {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0 auto;
+
+    padding: 0 5%;
+
+    background-color: #3c7397d5;
+
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Mapa das fases */
+
+.mapa-fases {
+    position: relative;
+
+    width: 110%;
+    max-width: 1100px;
+
+    height: fit-content;
+
+    margin: 0 auto;
+    border-left: 5px solid #5ce5e8;
+    border-right: 5px solid #5ce5e8;
+}
+
+/* Imagem do mapa */
+
+.imagem-mapa {
+    display: block;
+
+    width: 100%;
+    height: auto;
+}
+
+/* Botões das fases */
+
+.botao-fase {
+    position: absolute;
+    transform: translate(-50%, -50%);
+
+    width: 9.6%;
+    aspect-ratio: 1 / 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+
+    font-family: "Pixelify Sans", sans-serif;
+    font-size: clamp(16px, 5vw, 25px);
+    font-weight: bold;
+    text-decoration: none;
+
+    color: white;
+    cursor: pointer;
+
+    transition: transform 0.2s, filter 0.2s;
+}
+
+/* Fase disponível */
+
+.desbloqueada {
+    background-color: #5ce5e8;
+    border-color: #3c7397;
+    text-shadow: 2px 2px 2px #573900;
+    font-size: 40px;
+}
+
+/* Fase concluída */
+
+.concluida {
+    background-color: #319b45;
+    border-color: #aaffad;
+    text-shadow: 2px 2px 2px #164d20;
+    font-size: 35px;
+}
+
+/* Fase bloqueada */
+
+.bloqueada {
+    background-color: #555555;
+    border-color: #999999;
+    color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.9;
+    font-size: 35px;
+    
+}
+
+/* Efeito ao passar o mouse */
+
+a.botao-fase:hover {
+    transform: translate(-50%, -50%) scale(1.12);
+    filter: brightness(1.15);
+}
+
+/* Botão voltar */
+
+.botao-voltar {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+
+    width: 240px;
+    height: 75px;
+
+    background: #3c7397;
+    border: 3px solid #5ce5e8;
+
+    border-radius: 0px;
+
+    box-shadow:
+        0 7px 0 #28556f,
+        0 10px 18px rgba(0, 0, 0, 0.35);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none;
+    color: #fccc0a;
+
+    transition: 0.2s;
+    z-index: 10;
+
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1;
+
+    text-shadow: 2px 2px #28556f;
+}
+
+.botao-voltar:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 11px 0 #28556f,
+        0 14px 20px rgba(0, 0, 0, 0.35);
+}
+
+.botao-voltar:active {
+    transform: translateY(3px);
+
+    box-shadow:
+        0 3px 0 #28556f,
+        0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.icone-menu img {
+    width: 150px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-height: 1100px) {
+    .icone-menu img {
+        width: 50px;
+        height: auto;
+        margin-right: 17px;
+    }
+
+    .botao-voltar {
+        width: 180px;
+        height: 67px;
+        font-size: 14px;
+    }
+}
+
+/* Ajustes para telas pequenas */
+
+@media (max-width: 600px) {
+
+    .botao-fase {
+        border-width: 2px;
+        font-size: clamp(13px, 5vw, 20px);
+    }
+
+    .botao-voltar {
+        top: 8px;
+        left: 8px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .botao-voltar img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .pagina-fases {
+        padding: 20px 3%;
+    }
+
+    .mapa-fases {
+        width: 96%;
+    }
+}

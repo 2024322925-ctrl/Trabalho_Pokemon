@@ -235,6 +235,44 @@ CREATE TABLE pokemon_ataque (
         REFERENCES ataque(id_ataque)
 );
 
+CREATE TABLE log_batalha_pokemon (
+    id_batalha INT NOT NULL,
+    id_pokemon INT NOT NULL,
+    ordem INT NOT NULL,
+    xp_recebido INT NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (id_batalha, ordem),
+    UNIQUE (id_batalha, id_pokemon),
+
+    FOREIGN KEY (id_batalha)
+        REFERENCES log_batalha(id_batalha),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon)
+);
+
+CREATE TABLE progresso_usuario (
+    id_usuario INT PRIMARY KEY,
+    maior_fase_desbloqueada INT NOT NULL DEFAULT 1,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE usuario_fase_concluida (
+    id_usuario INT NOT NULL,
+    id_fase INT NOT NULL,
+    data_conclusao DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id_usuario, id_fase),
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+
+    FOREIGN KEY (id_fase)
+        REFERENCES fase(id_fase)
+);
+
 DELIMITER //
 
 CREATE TRIGGER criar_carteira_usuario
@@ -326,3 +364,9 @@ WHERE c.id_compra = NEW.id_compra
 ON DUPLICATE KEY UPDATE
     quantidade = quantidade + NEW.quantidade;
 
+ALTER TABLE pokemon_time_status
+ADD COLUMN nivel INT NOT NULL DEFAULT 1,
+ADD COLUMN xp INT NOT NULL DEFAULT 0;
+
+ALTER TABLE log_batalha
+ADD COLUMN xp_recebido INT NOT NULL DEFAULT 0;

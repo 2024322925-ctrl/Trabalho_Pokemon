@@ -58,7 +58,7 @@ if ($time) {
                 <span>TEAM<br>BUILDER</span>
             </a>
 
-            <a href="../batalha/index.php" class="botao-menu">
+            <a href="../fases/index.php" class="botao-menu">
                 <div class="icone-menu">
                     <img style="width: 120px; height: auto;" src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
                 </div>

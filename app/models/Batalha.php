@@ -1,3 +1,4 @@
+
 <?php
 
 class Batalha
@@ -6,6 +7,7 @@ class Batalha
     private $idUsuario;
     private $resultado;
     private $recompensa;
+    private $xpRecebido;
     private $data;
     private $fase;
 
@@ -13,12 +15,14 @@ class Batalha
         $idUsuario = null,
         $resultado = null,
         $recompensa = 0,
-        $fase = null
+        $fase = null,
+        $xpRecebido = 0
     ) {
         $this->idUsuario = $idUsuario;
         $this->resultado = $resultado;
         $this->recompensa = $recompensa;
         $this->fase = $fase;
+        $this->xpRecebido = $xpRecebido;
     }
 
     public function getIdBatalha()
@@ -59,6 +63,16 @@ class Batalha
     public function setRecompensa($recompensa)
     {
         $this->recompensa = $recompensa;
+    }
+
+    public function getXpRecebido()
+    {
+        return $this->xpRecebido;
+    }
+
+    public function setXpRecebido($xpRecebido)
+    {
+        $this->xpRecebido = $xpRecebido;
     }
 
     public function getData()
