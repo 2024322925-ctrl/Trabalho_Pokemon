@@ -16,7 +16,8 @@ create table usuario(
 
 create table tipo(
     id_tipo int AUTO_INCREMENT primary key,
-    nome varchar(30) not null unique
+    nome varchar(30) not null unique,
+    imagem VARCHAR(255) DEFAULT NULL
 );
 
 
@@ -32,7 +33,8 @@ create table pokemon(
     defesa_especial int not null, 
     status_atual varchar(30) default null,
     ativo boolean default true,
-    imagem_costas VARCHAR(255) DEFAULT NULL
+    imagem_costas VARCHAR(255) DEFAULT NULL,
+    imagem VARCHAR(255) DEFAULT NULL
 );
 
 
@@ -155,6 +157,7 @@ CREATE TABLE pokemon_time_status(
     id_pokemon INT NOT NULL,
     hp_atual INT NOT NULL,
     status_atual VARCHAR(30) DEFAULT NULL,
+    turnos_status INT NOT NULL DEFAULT 0,
 
     PRIMARY KEY (id_time, id_pokemon),
 
@@ -163,22 +166,73 @@ CREATE TABLE pokemon_time_status(
     ON DELETE CASCADE
 );
 
-CREATE TABLE log_batalha(
+CREATE TABLE log_batalha (
     id_batalha INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
+    id_fase INT NOT NULL,
     resultado VARCHAR(20) NOT NULL,
-    recompensa DECIMAL(10,2) NOT NULL DEFAULT 0,
-    data_batalha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    recompensa DECIMAL(10,2) DEFAULT 0,
+    data_batalha DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(id_usuario) REFERENCES usuario(id_usuario)
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+
+    FOREIGN KEY (id_fase)
+        REFERENCES fase(id_fase)
 );
 
+CREATE TABLE ataque (
+    id_ataque INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    id_tipo INT NOT NULL,
+    poder INT NOT NULL DEFAULT 0,
+    precisao INT,
+    categoria VARCHAR(20) NOT NULL,
+    efeito_status VARCHAR(30),
+    chance_efeito DECIMAL(5,2) DEFAULT 0,
+    dados_efeito JSON NULL
 
-ALTER TABLE pokemon
-ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
+    FOREIGN KEY (id_tipo) REFERENCES tipo(id_tipo)
+);
 
-ALTER TABLE tipo
-ADD COLUMN imagem VARCHAR(255) DEFAULT NULL;
+CREATE TABLE pokemon_ataque (
+    id_pokemon INT NOT NULL,
+    id_ataque INT NOT NULL,
+    posicao INT NOT NULL,
+
+    PRIMARY KEY (id_pokemon, posicao),
+
+    UNIQUE (id_pokemon, id_ataque),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (id_ataque)
+        REFERENCES ataque(id_ataque)
+);
+
+CREATE TABLE fase (
+    id_fase INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    tipo VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE fase_pokemon (
+    id_fase INT NOT NULL,
+    id_pokemon INT NOT NULL,
+    nivel INT NOT NULL,
+    posicao INT NOT NULL,
+
+    PRIMARY KEY (id_fase, posicao),
+    UNIQUE (id_fase, id_pokemon),
+
+    FOREIGN KEY (id_fase)
+        REFERENCES fase(id_fase),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon)
+);
 
 UPDATE tipo
 SET imagem = CASE nome
@@ -278,3 +332,53 @@ LEFT JOIN pokemon_time_status pts
     ON tm.id_time = pts.id_time
     AND tm.id_pokemon = pts.id_pokemon
 WHERE tp.ativo = 1;
+
+INSERT INTO fase (nome, tipo) VALUES
+('Ginásio de Pewter', 'rock'),
+('Ginásio de Cerulean', 'water'),
+('Ginásio de Vermilion', 'electric'),
+('Ginásio de Celadon', 'grass'),
+('Ginásio de Fuchsia', 'poison'),
+('Ginásio da Ilha Cinnabar', 'fire'),
+('Ginásio de Saffron', 'psychic'),
+('Ginásio de Viridian', 'ground');
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(1, 74, 3, 1),
+(1, 95, 4, 2),
+(1, 42, 5, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(2, 118, 7, 1),
+(2, 121, 8, 2),
+(2, 130, 9, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(3, 100, 13, 1),
+(3, 125, 15, 2),
+(3, 26, 17, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(4, 70, 21, 1),
+(4, 114, 23, 2),
+(4, 45, 25, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(5, 109, 32, 1),
+(5, 89, 34, 2),
+(5, 110, 36, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(6, 58, 46, 1),
+(6, 78, 48, 2),
+(6, 59, 50, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(7, 64, 63, 1),
+(7, 122, 66, 2),
+(7, 65, 69, 3);
+
+INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
+(8, 51, 80, 1),
+(8, 31, 85, 2),
+(8, 34, 90, 3);

@@ -230,6 +230,12 @@ class PokemonDAO
                 $stmt->execute();
             }
 
+            // Salva os ataques e associa ao Pokémon
+            $this->salvarAtaquesDoPokemon(
+                $idPokemon,
+                $dados["ataques"]
+            );
+
             $this->conexao->commit();
 
             return true;
@@ -240,6 +246,151 @@ class PokemonDAO
             }
 
             throw $e;
+        }
+    }
+
+    private function obterOuCriarTipo($nomeTipo)
+    {
+        $sql = "SELECT id_tipo
+                FROM tipo
+                WHERE nome = :nome";
+
+        $stmt = $this->conexao->prepare($sql);
+        $stmt->bindValue(":nome", $nomeTipo);
+        $stmt->execute();
+
+        $idTipo = $stmt->fetchColumn();
+
+        if (!$idTipo) {
+            $sql = "INSERT INTO tipo (nome)
+                    VALUES (:nome)";
+
+            $stmt = $this->conexao->prepare($sql);
+            $stmt->bindValue(":nome", $nomeTipo);
+            $stmt->execute();
+
+            $idTipo = $this->conexao->lastInsertId();
+        }
+
+        return $idTipo;
+    }
+
+    private function salvarAtaquesDoPokemon($idPokemon, array $ataques)
+    {
+        // Remove as associações antigas
+        $sql = "DELETE FROM pokemon_ataque
+                WHERE id_pokemon = :id_pokemon";
+
+        $stmt = $this->conexao->prepare($sql);
+        $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
+        $stmt->execute();
+
+        foreach ($ataques as $ataque) {
+
+            // Localiza ou cria o tipo do ataque
+            $idTipo = $this->obterOuCriarTipo($ataque["tipo"]);
+
+            // Transforma os efeitos em JSON
+            $dadosEfeito = json_encode(
+                $ataque["dados_efeito"] ?? [],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            );
+
+            if ($dadosEfeito === false) {
+                throw new Exception(
+                    "Erro ao converter os efeitos do ataque para JSON."
+                );
+            }
+
+            // Verifica se o ataque já existe
+            $sql = "SELECT id_ataque
+                    FROM ataque
+                    WHERE nome = :nome";
+
+            $stmt = $this->conexao->prepare($sql);
+            $stmt->bindValue(":nome", $ataque["nome"]);
+            $stmt->execute();
+
+            $idAtaque = $stmt->fetchColumn();
+
+            if ($idAtaque) {
+
+                // Atualiza os dados do ataque existente
+                $sql = "UPDATE ataque SET
+                            id_tipo = :id_tipo,
+                            poder = :poder,
+                            precisao = :precisao,
+                            categoria = :categoria,
+                            efeito_status = :efeito_status,
+                            chance_efeito = :chance_efeito,
+                            dados_efeito = :dados_efeito
+                        WHERE id_ataque = :id_ataque";
+
+                $stmt = $this->conexao->prepare($sql);
+
+                $stmt->bindValue(":id_ataque", $idAtaque, PDO::PARAM_INT);
+
+            } else {
+
+                // Cadastra um novo ataque
+                $sql = "INSERT INTO ataque (
+                            nome,
+                            id_tipo,
+                            poder,
+                            precisao,
+                            categoria,
+                            efeito_status,
+                            chance_efeito,
+                            dados_efeito
+                        ) VALUES (
+                            :nome,
+                            :id_tipo,
+                            :poder,
+                            :precisao,
+                            :categoria,
+                            :efeito_status,
+                            :chance_efeito,
+                            :dados_efeito
+                        )";
+
+                $stmt = $this->conexao->prepare($sql);
+
+                $stmt->bindValue(":nome", $ataque["nome"]);
+            }
+
+            $stmt->bindValue(":id_tipo", $idTipo, PDO::PARAM_INT);
+            $stmt->bindValue(":poder", $ataque["poder"], PDO::PARAM_INT);
+            $stmt->bindValue(":precisao", $ataque["precisao"]);
+            $stmt->bindValue(":categoria", $ataque["categoria"]);
+            $stmt->bindValue(":efeito_status", $ataque["efeito_status"]);
+            $stmt->bindValue(":chance_efeito", $ataque["chance_efeito"]);
+            $stmt->bindValue(":dados_efeito", $dadosEfeito, PDO::PARAM_STR);
+
+            $stmt->execute();
+
+            // Recupera o ID do ataque cadastrado
+            if (!$idAtaque) {
+                $idAtaque = $this->conexao->lastInsertId();
+            }
+
+            // Relaciona o ataque ao Pokémon
+            $sql = "INSERT INTO pokemon_ataque (
+                        id_pokemon,
+                        id_ataque,
+                        posicao
+                    ) VALUES (
+                        :id_pokemon,
+                        :id_ataque,
+                        :posicao
+                    )";
+
+            $stmt = $this->conexao->prepare($sql);
+
+            $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
+            $stmt->bindValue(":id_ataque", $idAtaque, PDO::PARAM_INT);
+            $stmt->bindValue(":posicao", $ataque["posicao"], PDO::PARAM_INT);
+
+            $stmt->execute();
         }
     }
 }
