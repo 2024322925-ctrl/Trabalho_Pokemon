@@ -42,6 +42,7 @@ create table item(
     id_item int AUTO_INCREMENT primary key,
     nome varchar(50) not null unique,
     descricao varchar(255),
+    imagem_item VARCHAR(500) NULL,
     preco decimal(10,2) not null,
     tipo varchar(30) not null,
     quantidade int default null,
@@ -261,6 +262,47 @@ WHERE nome IN (
     'electric', 'psychic', 'ice', 'dragon', 'fairy'
 );
 
+INSERT INTO item
+(nome, descricao, imagem_item, preco, tipo)
+VALUES
+(
+    'Fire Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com fogo.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fire-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Water Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com água.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/water-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Thunder Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com eletricidade.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Leaf Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com planta.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leaf-stone.png',
+    3000.00,
+    'evolucao'
+),
+(
+    'Ice Stone',
+    'Pedra utilizada para evoluir Pokémon compatíveis com gelo.',
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ice-stone.png',
+    3000.00,
+    'evolucao'
+);
+
+
+
 DELIMITER //
 
 CREATE TRIGGER criar_carteira_usuario
@@ -333,52 +375,21 @@ LEFT JOIN pokemon_time_status pts
     AND tm.id_pokemon = pts.id_pokemon
 WHERE tp.ativo = 1;
 
-INSERT INTO fase (nome, tipo) VALUES
-('Ginásio de Pewter', 'rock'),
-('Ginásio de Cerulean', 'water'),
-('Ginásio de Vermilion', 'electric'),
-('Ginásio de Celadon', 'grass'),
-('Ginásio de Fuchsia', 'poison'),
-('Ginásio da Ilha Cinnabar', 'fire'),
-('Ginásio de Saffron', 'psychic'),
-('Ginásio de Viridian', 'ground');
 
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(1, 74, 3, 1),
-(1, 95, 4, 2),
-(1, 42, 5, 3);
+DROP TRIGGER IF EXISTS atualizar_inventario_compra;
 
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(2, 118, 7, 1),
-(2, 121, 8, 2),
-(2, 130, 9, 3);
+CREATE TRIGGER atualizar_inventario_compra
+AFTER INSERT ON compra_item
+FOR EACH ROW
 
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(3, 100, 13, 1),
-(3, 125, 15, 2),
-(3, 26, 17, 3);
+INSERT INTO inventario (id_usuario, id_item, quantidade)
+SELECT
+    c.id_usuario,
+    NEW.id_item,
+    NEW.quantidade
+FROM compra c
+WHERE c.id_compra = NEW.id_compra
 
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(4, 70, 21, 1),
-(4, 114, 23, 2),
-(4, 45, 25, 3);
+ON DUPLICATE KEY UPDATE
+    quantidade = quantidade + NEW.quantidade;
 
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(5, 109, 32, 1),
-(5, 89, 34, 2),
-(5, 110, 36, 3);
-
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(6, 58, 46, 1),
-(6, 78, 48, 2),
-(6, 59, 50, 3);
-
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(7, 64, 63, 1),
-(7, 122, 66, 2),
-(7, 65, 69, 3);
-
-INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
-(8, 51, 80, 1),
-(8, 31, 85, 2),
-(8, 34, 90, 3);
