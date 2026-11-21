@@ -1,41 +1,91 @@
 INSERT INTO item
-(nome, descricao, imagem_item, preco, tipo)
+(id_item, nome, descricao, imagem_item, preco, tipo, quantidade, disponivel)
 VALUES
-(
-    'Fire Stone',
-    'Pedra utilizada para evoluir Pokémon compatíveis com fogo.',
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fire-stone.png',
-    3000.00,
-    'evolucao'
-),
-(
-    'Water Stone',
-    'Pedra utilizada para evoluir Pokémon compatíveis com água.',
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/water-stone.png',
-    3000.00,
-    'evolucao'
-),
-(
-    'Thunder Stone',
-    'Pedra utilizada para evoluir Pokémon compatíveis com eletricidade.',
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png',
-    3000.00,
-    'evolucao'
-),
-(
-    'Leaf Stone',
-    'Pedra utilizada para evoluir Pokémon compatíveis com planta.',
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leaf-stone.png',
-    3000.00,
-    'evolucao'
-),
-(
-    'Ice Stone',
-    'Pedra utilizada para evoluir Pokémon compatíveis com gelo.',
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ice-stone.png',
-    3000.00,
-    'evolucao'
-);
+
+(1, 'Potion',
+ 'Recupera uma pequena quantidade de HP do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png',
+ 200.00, 'hp', NULL, 1),
+
+(2, 'Super Potion',
+ 'Recupera uma quantidade maior de HP do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/super-potion.png',
+ 700.00, 'hp', NULL, 1),
+
+(3, 'Hyper Potion',
+ 'Recupera uma grande quantidade de HP do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/hyper-potion.png',
+ 1500.00, 'hp', NULL, 1),
+
+(4, 'Max Potion',
+ 'Recupera todo o HP do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/max-potion.png',
+ 2500.00, 'hp', NULL, 1),
+
+(5, 'Full Restore',
+ 'Recupera todo o HP e remove condições negativas.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/full-restore.png',
+ 3000.00, 'hp', NULL, 1),
+
+(6, 'Antidote',
+ 'Cura o envenenamento do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/antidote.png',
+ 200.00, 'status', NULL, 1),
+
+(7, 'Burn Heal',
+ 'Cura a queimadura do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/burn-heal.png',
+ 200.00, 'status', NULL, 1),
+
+(8, 'Ice Heal',
+ 'Cura o congelamento do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ice-heal.png',
+ 200.00, 'status', NULL, 1),
+
+(9, 'Awakening',
+ 'Desperta um Pokémon adormecido.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/awakening.png',
+ 200.00, 'status', NULL, 1),
+
+(10, 'Paralyze Heal',
+ 'Cura a paralisia do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/paralyze-heal.png',
+ 200.00, 'status', NULL, 1),
+
+(11, 'Full Heal',
+ 'Remove condições negativas do Pokémon.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/full-heal.png',
+ 400.00, 'status', NULL, 1),
+
+(12, 'Revive',
+ 'Revive um Pokémon derrotado.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/revive.png',
+ 2000.00, 'reviver', NULL, 1),
+
+(13, 'Fire Stone',
+ 'Pedra utilizada para evoluir Pokémon compatíveis com fogo.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fire-stone.png',
+ 3000.00, 'evolucao', NULL, 1),
+
+(14, 'Water Stone',
+ 'Pedra utilizada para evoluir Pokémon compatíveis com água.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/water-stone.png',
+ 3000.00, 'evolucao', NULL, 1),
+
+(15, 'Thunder Stone',
+ 'Pedra utilizada para evoluir Pokémon compatíveis com eletricidade.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png',
+ 3000.00, 'evolucao', NULL, 1),
+
+(16, 'Leaf Stone',
+ 'Pedra utilizada para evoluir Pokémon compatíveis com planta.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leaf-stone.png',
+ 3000.00, 'evolucao', NULL, 1),
+
+(17, 'Moon Stone',
+ 'Pedra utilizada para evoluir Pokémon compatíveis.',
+ 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/moon-stone.png',
+ 3000.00, 'evolucao', NULL, 1);
 
 INSERT INTO fase (nome, tipo) VALUES
 ('Ginásio de Pewter', 'rock'),

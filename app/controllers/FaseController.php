@@ -23,6 +23,24 @@ class FaseController
     {
         return $this->faseDAO->buscarPorId($idFase);
     }
+
+    // Verifica se o usuário pode acessar uma fase
+    public function verificarAcessoFase($idUsuario, $idFase)
+    {
+        if ($idFase < 1 || $idFase > 8) {
+            return false;
+        }
+
+        $fases = $this->listarFases($idUsuario);
+
+        foreach ($fases as $fase) {
+            if ((int) $fase["id_fase"] === (int) $idFase) {
+                return $idFase <= (int) $fase["maior_fase_desbloqueada"];
+            }
+        }
+
+        return false;
+    }
 }
 
 ?>

@@ -18,7 +18,7 @@ $fases = $faseController->listarFases($id_usuario);
 
 // Posições dos botões em porcentagem da imagem
 $posicoes = [
-    1 => ["x" => 32.3, "y" => 96.6],
+    1 => ["x" => 32.3, "y" => 95.6],
     2 => ["x" => 39.5, "y" => 72.4],
     3 => ["x" => 64.7, "y" => 63.6],
     4 => ["x" => 32.5, "y" => 49.9],
@@ -54,10 +54,10 @@ $maiorFaseDesbloqueada = !empty($fases)
 <body>
 
     <a href="../home/index.php" class="botao-voltar">
-    <div class="icone-menu">
-        <img src="../../../public/imagens/pikachu.png" alt="Pikachu">
-    </div>
-    Voltar ao<br>início
+        <div class="icone-menu">
+            <img src="../../../public/imagens/pikachu.png" alt="Pikachu">
+        </div>
+        Voltar ao<br>início
     </a>
 
     <main class="pagina-fases">
@@ -89,7 +89,7 @@ $maiorFaseDesbloqueada = !empty($fases)
                 <?php if ($desbloqueada): ?>
 
                     <a
-                        href="../preparacao/index.php?id_fase=<?= $idFase ?>"
+                        href="selecao.php?id_fase=<?= $idFase ?>"
                         class="botao-fase <?= $concluida ? 'concluida' : 'desbloqueada' ?>"
                         style="left: <?= $x ?>%; top: <?= $y ?>%;"
                         aria-label="Fase <?= $idFase ?>: <?= htmlspecialchars($fase["nome"]) ?>"
@@ -119,9 +119,10 @@ $maiorFaseDesbloqueada = !empty($fases)
     </main>
 
     <script>
-    window.addEventListener("load", function () {
-        window.scrollTo(0, document.body.scrollHeight);
-    });
-    </script>              
+        window.addEventListener("load", function () {
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+
 </body>
 </html>
