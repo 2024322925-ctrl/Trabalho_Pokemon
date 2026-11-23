@@ -319,7 +319,7 @@ class BatalhaController
             "pokemon_adversario" => $pokemonAdversario
         ];
     }
-
+    
     // Prepara os dados visuais de um Pokémon para a batalha
     private function prepararDadosVisuais($pokemon, $idPokemonInicial, $adversario = false)
     {
@@ -337,12 +337,31 @@ class BatalhaController
             "hp_maximo" => $hpMaximo,
             "hp_atual_exibicao" => $hpAtual,
             "porcentagem_hp" => $porcentagemHp,
+
             "pokemon_ativo" => (int) $pokemon["id_pokemon"] === $idPokemonInicial,
+
             "imagem_exibicao" => !$adversario && !empty($pokemon["imagem_costas"])
                 ? $pokemon["imagem_costas"]
-                : $pokemon["imagem"]
+                : $pokemon["imagem"],
+
+            // Estágios iniciais dos atributos
+            "estagios" => [
+                "ataque" => 0,
+                "defesa" => 0,
+                "ataque_especial" => 0,
+                "defesa_especial" => 0,
+                "velocidade" => 0
+            ]
         ]);
     }
+
+    public function calcularNovoEstagio($estagioAtual, $alteracao)
+    {
+        $novoEstagio = (int) $estagioAtual + (int) $alteracao;
+
+        return max(-3, min(3, $novoEstagio));
+    }
+
 
     // Carrega os dados necessários para a tela de seleção
     public function carregarSelecao($idUsuario)
@@ -437,7 +456,7 @@ class BatalhaController
             // Poison (2)
             2 => [
                 1 => 2, 2 => 0.5, 9 => 0.5, 13 => 0.5,
-                14 => 0, 10 => 2
+                14 => 0, 16 => 0.5, 10 => 2
             ],
 
             // Normal (3)

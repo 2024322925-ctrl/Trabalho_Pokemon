@@ -45,12 +45,23 @@ botoesAtaque.forEach(function (botao) {
 
             console.log(dados);
 
-            document.getElementById("mensagem-batalha").textContent =
-                dados.mensagem;
+            const mensagemBatalha = document.getElementById("mensagem-batalha");
 
+            // Verifica se o ataque foi executado corretamente
             if (!dados.sucesso) {
+                mensagemBatalha.textContent = dados.mensagem;
                 return;
             }
+
+            // Exibe a mensagem do ataque utilizado
+            let mensagem = dados.mensagem;
+
+            // Acrescenta a mensagem de efetividade, quando existir
+            if (dados.mensagem_efetividade) {
+                mensagem += " " + dados.mensagem_efetividade;
+            }
+
+            mensagemBatalha.textContent = mensagem;
 
             // Atualiza a barra de HP do adversário
             if (dados.hp_atual !== undefined) {
