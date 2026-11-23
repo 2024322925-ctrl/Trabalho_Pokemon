@@ -17,29 +17,79 @@ require_once __DIR__ . "/../../../controllers/BatalhaController.php";
 
 $batalhaController = new BatalhaController();
 
-$dadosBatalha = $batalhaController->prepararBatalha(
-    (int) $_SESSION["id_usuario"],
-    $_SESSION["preparacao_batalha"]
-);
+// Inicializa a batalha somente na primeira entrada
+if (empty($_SESSION["preparacao_batalha"]["iniciada"])) {
 
-if (!$dadosBatalha["sucesso"]) {
+    // Remove uma possível batalha anterior
+    unset($_SESSION["batalha"]);
 
-    $idFase = (int) ($_SESSION["preparacao_batalha"]["id_fase"] ?? 0);
+    $iniciada = $batalhaController->iniciarBatalha(
+        (int) $_SESSION["id_usuario"],
+        $_SESSION["preparacao_batalha"]
+    );
 
-    unset($_SESSION["preparacao_batalha"]);
+    if (!$iniciada) {
+        unset($_SESSION["preparacao_batalha"]);
 
-    if ($idFase >= 1 && $idFase <= 8) {
-        header("Location: ../selecao.php?id_fase=" . $idFase);
-    } else {
         header("Location: ../index.php");
+        exit;
     }
 
-    exit;
+    $_SESSION["preparacao_batalha"]["iniciada"] = true;
 }
+
+// Dados do usuário, time e fase
+$idUsuario = (int) $_SESSION["id_usuario"];
+$idTime = (int) $_SESSION["preparacao_batalha"]["id_time"];
+$idFase = (int) $_SESSION["preparacao_batalha"]["id_fase"];
+
+// Verifica se já existe uma batalha preparada na sessão
+$batalhaExistente = isset($_SESSION["batalha"])
+    && $_SESSION["batalha"]["id_usuario"] === $idUsuario
+    && $_SESSION["batalha"]["id_time"] === $idTime
+    && $_SESSION["batalha"]["id_fase"] === $idFase;
+
+// Prepara a batalha somente se ainda não existir na sessão
+if (!$batalhaExistente) {
+
+    $dadosBatalha = $batalhaController->prepararBatalha(
+        $idUsuario,
+        $_SESSION["preparacao_batalha"]
+    );
+
+    if (!$dadosBatalha["sucesso"]) {
+
+        unset($_SESSION["preparacao_batalha"]);
+        unset($_SESSION["batalha"]);
+
+        if ($idFase >= 1 && $idFase <= 8) {
+            header("Location: ../selecao.php?id_fase=" . $idFase);
+        } else {
+            header("Location: ../index.php");
+        }
+
+        exit;
+    }
+
+    // Guarda os dados da batalha na sessão
+    $_SESSION["batalha"] = $dadosBatalha;
+
+    $_SESSION["batalha"]["id_usuario"] = $idUsuario;
+    $_SESSION["batalha"]["id_time"] = $idTime;
+    $_SESSION["batalha"]["id_fase"] = $idFase;
+    $_SESSION["batalha"]["indice_adversario"] = 0;
+
+    $_SESSION["batalha"]["id_pokemon_ativo"] =
+        (int) $dadosBatalha["pokemon_inicial"]["id_pokemon"];
+}
+
+// Recupera os dados armazenados na sessão
+$dadosBatalha = $_SESSION["batalha"];
 
 $pokemonInicial = $dadosBatalha["pokemon_inicial"];
 $pokemonAdversario = $dadosBatalha["pokemon_adversario"];
 $pokemonsSelecionados = $dadosBatalha["pokemons_selecionados"];
+$ataquesPokemon = $pokemonInicial["ataques"] ?? [];
 
 // MAPEAMENTO DAS POSIÇÕES DOS POKÉMON NA ARENA
 $posicoesPokemon = [
@@ -182,12 +232,14 @@ $posicoesPokemon = [
                 </div>
 
                 <div class="barra-hp">
-                    <div class="preenchimento-hp"
+                    <div
+                        class="preenchimento-hp"
+                        id="hp-adversario"
                         style="width: <?= $pokemonAdversario["porcentagem_hp"] ?>%;">
                     </div>
                 </div>
 
-                <p class="texto-hp">
+                <p class="texto-hp" id="texto-hp-adversario">
                     HP: <?= $pokemonAdversario["hp_atual_exibicao"] ?> /
                     <?= $pokemonAdversario["hp_maximo"] ?>
                 </p>
@@ -207,29 +259,57 @@ $posicoesPokemon = [
 
             </div>
 
-            <div class="acoes-batalha">
+            <div class="acoes-batalha" id="acoes-batalha">
 
-                <button type="button" id="botao-atacar">
-                    ATACAR
-                </button>
+                <!-- MENU PRINCIPAL -->
+                <div class="menu-principal" id="menu-principal">
 
-                <button type="button" id="botao-trocar">
-                    TROCAR POKÉMON
-                </button>
+                    <button type="button" id="botao-atacar">
+                        ATACAR
+                    </button>
 
-                <button type="button" id="botao-itens">
-                    ITENS
-                </button>
+                    <button type="button" id="botao-trocar">
+                        TROCAR POKÉMON
+                    </button>
 
-                <button type="button" id="botao-fugir">
-                    FUGIR
-                </button>
+                    <button type="button" id="botao-itens">
+                        ITENS
+                    </button>
+
+                    <button type="button" id="botao-fugir">
+                        FUGIR
+                    </button>
+
+                </div>
+
+                <!-- MENU DE ATAQUES -->
+                <div class="menu-ataques" id="menu-ataques" hidden>
+
+                    <?php foreach ($pokemonInicial["ataques"] as $ataque): ?>
+
+                        <button
+                            type="button"
+                            class="botao-ataque"
+                            data-id-ataque="<?= (int) $ataque["id_ataque"] ?>"
+                        >
+                            <?= htmlspecialchars($ataque["nome"], ENT_QUOTES, "UTF-8") ?>
+                        </button>
+
+                    <?php endforeach; ?>
+
+                    <button type="button" id="botao-voltar-ataques">
+                        VOLTAR
+                    </button>
+
+                </div>
 
             </div>
 
         </section>
 
     </main>
+
+    <script src="../../../../public/js/batalha.js"></script>
 
 </body>
 

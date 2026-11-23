@@ -45,7 +45,7 @@ class BatalhaDAO
                     p.imagem_costas,
                     tm.id_time,
                     tm.posicao,
-                    COALESCE(pts.hp_atual, p.hp) AS hp_atual,
+                    COALESCE(pts.hp_atual, p.hp_atual) AS hp_atual,
                     COALESCE(pts.status_atual, p.status_atual) AS status_atual,
                     COALESCE(pts.nivel, 1) AS nivel,
                     COALESCE(pts.xp, 0) AS xp
@@ -142,6 +142,114 @@ class BatalhaDAO
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    
+// Recupera o HP máximo dos Pokémon selecionados para a batalha
+    public function recuperarHPDosPokemonsSelecionados($idTime, array $idsPokemons)
+    {
+        if (empty($idsPokemons)) {
+            return false;
+        }
+
+        $parametros = [];
+
+        foreach ($idsPokemons as $indice => $idPokemon) {
+            $parametros[] = ":pokemon_" . $indice;
+        }
+
+        $listaParametros = implode(", ", $parametros);
+
+        try {
+            $this->conexao->beginTransaction();
+
+            // Cria registros de status para Pokémon que ainda não possuem
+            $sqlInserir = "INSERT INTO pokemon_time_status
+                            (id_time, id_pokemon, hp_atual)
+                        SELECT
+                            tm.id_time,
+                            tm.id_pokemon,
+                            p.hp
+                        FROM time_membro tm
+                        INNER JOIN pokemon p
+                            ON p.id_pokemon = tm.id_pokemon
+                        WHERE tm.id_time = :id_time
+                            AND tm.id_pokemon IN ($listaParametros)
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM pokemon_time_status pts
+                                WHERE pts.id_time = tm.id_time
+                                AND pts.id_pokemon = tm.id_pokemon
+                            )";
+
+            $stmtInserir = $this->conexao->prepare($sqlInserir);
+
+            $stmtInserir->bindValue(":id_time", $idTime, PDO::PARAM_INT);
+
+            foreach ($idsPokemons as $indice => $idPokemon) {
+                $stmtInserir->bindValue(
+                    ":pokemon_" . $indice,
+                    $idPokemon,
+                    PDO::PARAM_INT
+                );
+            }
+
+            $stmtInserir->execute();
+
+            // Atualiza o HP dos registros existentes
+            $sqlAtualizar = "UPDATE pokemon_time_status pts
+                            INNER JOIN pokemon p
+                                ON p.id_pokemon = pts.id_pokemon
+                            SET pts.hp_atual = p.hp
+                            WHERE pts.id_time = :id_time
+                            AND pts.id_pokemon IN ($listaParametros)";
+
+            $stmtAtualizar = $this->conexao->prepare($sqlAtualizar);
+
+            $stmtAtualizar->bindValue(":id_time", $idTime, PDO::PARAM_INT);
+
+            foreach ($idsPokemons as $indice => $idPokemon) {
+                $stmtAtualizar->bindValue(
+                    ":pokemon_" . $indice,
+                    $idPokemon,
+                    PDO::PARAM_INT
+                );
+            }
+
+            $stmtAtualizar->execute();
+
+            $this->conexao->commit();
+
+            return true;
+
+        } catch (PDOException $erro) {
+
+            if ($this->conexao->inTransaction()) {
+                $this->conexao->rollBack();
+            }
+
+            return false;
+        }
+    }
+
+
+
+    // Atualiza o HP atual de um Pokémon do jogador
+    public function atualizarHPPokemon($idTime, $idPokemon, $hpAtual)
+    {
+        $sql = "UPDATE pokemon_time_status
+                SET hp_atual = :hp_atual
+                WHERE id_time = :id_time
+                  AND id_pokemon = :id_pokemon";
+
+        $stmt = $this->conexao->prepare($sql);
+
+        $stmt->bindValue(":hp_atual", $hpAtual, PDO::PARAM_INT);
+        $stmt->bindValue(":id_time", $idTime, PDO::PARAM_INT);
+        $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
+
+        return $stmt->execute() && $stmt->rowCount() >= 0;
+    }
+
 }
 
 ?>
