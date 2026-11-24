@@ -95,6 +95,25 @@ class PokemonDAO
         return $pokemon;
     }
 
+    public function listarTeamBuilder()
+    {
+        $permitidos = [
+            "bulbasaur", "charmander", "squirtle", "caterpie", "weedle",
+            "pidgey", "rattata", "spearow", "ekans", "pikachu", "sandshrew",
+            "nidoran-f", "nidoran-m", "clefairy", "vulpix", "jigglypuff",
+            "zubat", "oddish", "paras", "venonat", "diglett", "meowth",
+            "psyduck", "mankey", "poliwag", "abra", "machop", "bellsprout",
+            "tentacool", "geodude", "slowpoke", "magnemite", "doduo",
+            "seel", "grimer", "shellder", "gastly", "drowzee", "krabby",
+            "voltorb", "exeggcute", "cubone", "koffing", "rhyhorn",
+            "horsea", "goldeen", "staryu", "magikarp", "eevee", "ditto"
+        ];
+
+        return array_values(array_filter($this->listarTodos(), static function ($pokemon) use ($permitidos) {
+            return in_array(strtolower($pokemon["nome"]), $permitidos, true);
+        }));
+    }
+
     public function listarTodos()
     {
         $sql = "SELECT 

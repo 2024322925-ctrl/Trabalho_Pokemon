@@ -2,6 +2,76 @@
 const API_LISTAR_LOJA = "../../../public/api/listarLoja.php";
 const API_COMPRAR = "../../../public/api/compra.php";
 
+const API_EQUIPE = "../../../public/api/gerenciarTime.php";
+const listaPokemonsLoja = document.getElementById("lista-pokemons-loja");
+
+async function carregarPokemonsLoja() {
+    try {
+        const resposta = await fetch(API_EQUIPE);
+        const dados = await resposta.json();
+        if (!resposta.ok || !dados.sucesso) {
+            throw new Error(dados.mensagem || "Falha ao carregar Pokémon.");
+        }
+        const estado = dados.desbloqueio;
+        if (!estado.escolheu_iniciais) {
+            listaPokemonsLoja.textContent = "Escolha seus três iniciais no Team Builder para liberar as compras.";
+            return;
+        }
+        const catalogo = await fetch("../../../public/api/listarPokemons.php");
+        if (!catalogo.ok) {
+            throw new Error("Falha ao carregar o catálogo.");
+        }
+        const pokemons = new Map((await catalogo.json()).map(pokemon => [Number(pokemon.id_pokemon), pokemon]));
+        const liberados = new Set(estado.desbloqueados.map(Number));
+        listaPokemonsLoja.replaceChildren();
+
+        for (const [id, pokemon] of pokemons) {
+            if (liberados.has(id)) continue;
+
+            const card = document.createElement("article");
+            card.className = "card-item";
+            const nome = document.createElement("h3");
+            nome.textContent = pokemon.nome;
+            const imagem = document.createElement("img");
+            imagem.src = pokemon.imagem;
+            imagem.alt = pokemon.nome;
+            imagem.className = "imagem-item";
+            imagem.loading = "lazy";
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.textContent = `Comprar por ${formatarPreco(estado.preco_pokemon)}`;
+            botao.addEventListener("click", async () => {
+                botao.disabled = true;
+                try {
+                    const compra = await fetch(API_EQUIPE, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ acao: "comprar_pokemon", id_pokemon: id })
+                    });
+                    const resultado = await compra.json();
+                    if (!compra.ok || !resultado.sucesso) {
+                        throw new Error(resultado.mensagem || "Falha na compra.");
+                    }
+                    mostrarMensagem(`${pokemon.nome} desbloqueado no Team Builder!`, "sucesso");
+                    await Promise.all([carregarPokemonsLoja(), carregarLoja()]);
+                } catch (erro) {
+                    mostrarMensagem(erro.message);
+                    botao.disabled = false;
+                }
+            });
+            card.append(nome, imagem, botao);
+            listaPokemonsLoja.appendChild(card);
+        }
+        if (!listaPokemonsLoja.children.length) {
+            listaPokemonsLoja.textContent = "Todos os Pokémon do catálogo já estão desbloqueados.";
+        }
+    } catch (erro) {
+        listaPokemonsLoja.textContent = erro.message;
+    }
+}
+
+carregarPokemonsLoja();
+
 const listaItens = document.getElementById("lista-itens");
 const saldoJogador = document.getElementById("saldo-jogador");
 const mensagemLoja = document.getElementById("mensagem-loja");

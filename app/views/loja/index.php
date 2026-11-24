@@ -30,10 +30,7 @@ if (!isset($_SESSION["id_usuario"])) {
 <body>
 
     <a href="../home/index.php" class="botao-voltar">
-    <div class="icone-menu">
-    <img src="../../../public/imagens/pikachu.png" alt="icone">
-    </div>
-    Voltar ao<br>início
+        Voltar ao início
     </a>
 
     <main class="loja">
@@ -50,6 +47,11 @@ if (!isset($_SESSION["id_usuario"])) {
         <section class="conteudo-loja">
 
             <div id="mensagem-loja"></div>
+
+            <section class="painel-itens">
+                <h2>Pokémon para desbloquear</h2>
+                <div id="lista-pokemons-loja" class="lista-itens"></div>
+            </section>
 
             <section class="painel-itens">
 
