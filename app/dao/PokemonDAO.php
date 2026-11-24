@@ -95,6 +95,25 @@ class PokemonDAO
         return $pokemon;
     }
 
+    private const INICIAIS_TEAM_BUILDER = [
+        "bulbasaur", "charmander", "squirtle", "caterpie", "weedle",
+        "pidgey", "rattata", "spearow", "ekans", "pikachu", "sandshrew",
+        "nidoran-f", "nidoran-m", "clefairy", "vulpix", "jigglypuff",
+        "zubat", "oddish", "paras", "venonat", "diglett", "meowth",
+        "psyduck", "mankey", "poliwag", "abra", "machop", "bellsprout",
+        "tentacool", "geodude", "slowpoke", "magnemite", "doduo",
+        "seel", "grimer", "shellder", "gastly", "drowzee", "krabby",
+        "voltorb", "exeggcute", "cubone", "koffing", "rhyhorn",
+        "horsea", "goldeen", "staryu", "magikarp", "eevee", "ditto"
+    ];
+
+    public function listarTeamBuilder()
+    {
+        return array_values(array_filter($this->listarTodos(), static function ($pokemon) {
+            return in_array(strtolower($pokemon["nome"]), self::INICIAIS_TEAM_BUILDER, true);
+        }));
+    }
+
     public function listarTodos()
     {
         $sql = "SELECT 

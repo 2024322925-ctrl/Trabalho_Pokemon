@@ -49,6 +49,11 @@ if (!isset($_SESSION["id_usuario"])) {
             <div id="mensagem-loja"></div>
 
             <section class="painel-itens">
+                <h2>Pokémon para desbloquear</h2>
+                <div id="lista-pokemons-loja" class="lista-itens"></div>
+            </section>
+
+            <section class="painel-itens">
 
                 <h2>Itens disponíveis</h2>
 

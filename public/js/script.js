@@ -1,4 +1,3 @@
-
 async function carregarPokemons() {
     const quantidade = document.getElementById("quantidade-pokemons");
     const lista = document.getElementById("lista-pokemons");
@@ -6,334 +5,353 @@ async function carregarPokemons() {
     const detalhes = document.getElementById("detalhes-pokemon");
     const slots = document.querySelectorAll(".slot-pokemon");
 
-    let time = [];
+    const apiCatalogo = "../../../public/api/listarPokemons.php";
+    const apiTime = "../../../public/api/gerenciarTime.php";
+
+    function criarElemento(tag, texto, classe) {
+        const elemento = document.createElement(tag);
+        if (texto !== undefined) elemento.textContent = texto;
+        if (classe) elemento.classList.add(classe);
+        return elemento;
+    }
+
+    function criarImagem(url, nome, classe) {
+        const imagem = criarElemento("img", undefined, classe);
+        imagem.src = url;
+        imagem.alt = nome;
+        return imagem;
+    }
+
+    function criarBotao(texto) {
+        const botao = criarElemento("button", texto);
+        botao.type = "button";
+        return botao;
+    }
+
+    async function alterarTime(dados) {
+        const resposta = await fetch(apiTime, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dados)
+        });
+
+        const resultado = await resposta.json();
+        if (!resposta.ok || !resultado.sucesso) {
+            throw new Error(resultado.mensagem || "Não foi possível atualizar o time.");
+        }
+    }
 
     try {
-        const resposta = await fetch("../../../public/api/listarPokemons.php");
-
+        const resposta = await fetch(apiCatalogo);
         if (!resposta.ok) {
-            throw new Error("Erro ao buscar os Pokémon.");
+            throw new Error("Erro ao buscar o catálogo de Pokémon.");
         }
 
-        const dados = await resposta.json();
-        const pokemons = [];
-
-        dados.forEach(function (pokemon) {
-            let pokemonExistente = pokemons.find(function (item) {
-                return item.id_pokemon == pokemon.id_pokemon;
-            });
-
-            if (!pokemonExistente) {
-                pokemonExistente = {
-                    id_pokemon: pokemon.id_pokemon,
-                    nome: pokemon.nome,
-                    imagem: pokemon.imagem,
-                    imagem_costas: pokemon.imagem_costas,
-                    hp: pokemon.hp,
-                    velocidade: pokemon.velocidade,
-                    ataque: pokemon.ataque,
-                    defesa: pokemon.defesa,
-                    ataque_especial: pokemon.ataque_especial,
-                    defesa_especial: pokemon.defesa_especial,
-                    tipos: []
-                };
-
-                pokemons.push(pokemonExistente);
+        const catalogo = new Map();
+        for (const linha of await resposta.json()) {
+            const id = Number(linha.id_pokemon);
+            if (!catalogo.has(id)) {
+                catalogo.set(id, { ...linha, tipos: [] });
             }
 
-            if (pokemon.nome_tipo) {
-                let tipoExistente = pokemonExistente.tipos.find(function (tipo) {
-                    return tipo.nome == pokemon.nome_tipo;
+            const pokemon = catalogo.get(id);
+            if (
+                linha.nome_tipo &&
+                !pokemon.tipos.some(tipo => tipo.nome === linha.nome_tipo)
+            ) {
+                pokemon.tipos.push({
+                    nome: linha.nome_tipo,
+                    imagem: linha.imagem_tipo
                 });
-
-                if (!tipoExistente) {
-                    pokemonExistente.tipos.push({
-                        nome: pokemon.nome_tipo,
-                        imagem: pokemon.imagem_tipo
-                    });
-                }
             }
-        });
+        }
 
+        const pokemons = [...catalogo.values()];
         quantidade.textContent = pokemons.length;
 
-        // Busca os Pokémon salvos no banco de dados
-        const respostaTime = await fetch("../../../public/api/gerenciarTime.php");
-
-        if (!respostaTime.ok) {
-            throw new Error("Erro ao carregar o time.");
-        }
-
+        const respostaTime = await fetch(apiTime);
         const dadosTime = await respostaTime.json();
-
-        if (!dadosTime.sucesso) {
-            throw new Error(dadosTime.mensagem);
+        if (!respostaTime.ok || !dadosTime.sucesso) {
+            throw new Error(dadosTime.mensagem || "Erro ao carregar o time.");
         }
 
-        dadosTime.pokemons.forEach(function (pokemonSalvo) {
-            const pokemon = pokemons.find(function (item) {
-                return item.id_pokemon == pokemonSalvo.id_pokemon;
-            });
+        const time = dadosTime.pokemons.map(
+            pokemon => catalogo.get(Number(pokemon.id_pokemon)) ?? pokemon
+        );
+        const estado = dadosTime.desbloqueio;
+        const idsLiberados = new Set(estado.desbloqueados.map(Number));
+        const evolucoes = dadosTime.evolucoes ?? [];
+        const escolhidos = new Map();
+        const faltam = Math.max(0, 3 - time.length);
 
-            if (pokemon) {
-                time.push(pokemon);
+        const instrucoes = criarElemento("div");
+        const texto = criarElemento("p");
+        const confirmar = criarBotao("Confirmar equipe inicial");
+        const loja = criarElemento("a", "Ir à Poké Mart");
+        loja.href = "../loja/index.php";
+        instrucoes.append(texto, estado.escolheu_iniciais ? loja : confirmar);
+        lista.before(instrucoes);
+
+        function atualizarEscolha() {
+            const nomes = [...escolhidos.values()]
+                .map(pokemon => pokemon.nome)
+                .join(", ");
+
+            texto.textContent =
+                `Escolha seus três Pokémon iniciais. ${time.length + escolhidos.size}/3` +
+                (nomes ? ` · ${nomes}` : "");
+
+            confirmar.disabled = escolhidos.size !== faltam;
+        }
+
+        if (estado.escolheu_iniciais) {
+            texto.textContent = "Compre Pokémon bloqueados na Poké Mart para adicionar ao time.";
+        } else {
+            atualizarEscolha();
+        }
+
+        confirmar.addEventListener("click", async () => {
+            confirmar.disabled = true;
+            try {
+                await alterarTime({
+                    acao: "escolher_iniciais",
+                    ids: [...escolhidos.keys()]
+                });
+                window.location.reload();
+            } catch (erro) {
+                alert(erro.message);
+                atualizarEscolha();
             }
         });
 
-        function mostrarDetalhes(pokemon) {
-            detalhes.replaceChildren();
-
-            const nome = document.createElement("h3");
-            nome.textContent = pokemon.nome;
-
-            const imagem = document.createElement("img");
-            imagem.src = pokemon.imagem;
-            imagem.alt = pokemon.nome;
-            imagem.classList.add("imagem-detalhes");
-
-            const tipos = document.createElement("div");
-            tipos.classList.add("tipos-pokemon");
-
-            pokemon.tipos.forEach(function (tipo) {
-                const icone = document.createElement("img");
-                icone.src = tipo.imagem;
-                icone.alt = tipo.nome;
+        function criarTipos(pokemon) {
+            const tipos = criarElemento("div", undefined, "tipos-pokemon");
+            for (const tipo of pokemon.tipos ?? []) {
+                const icone = criarImagem(tipo.imagem, tipo.nome, "icone-tipo");
                 icone.title = tipo.nome;
-                icone.classList.add("icone-tipo");
-
                 tipos.appendChild(icone);
-            });
+            }
+            return tipos;
+        }
 
-            const atributos = document.createElement("div");
-            atributos.classList.add("atributos-pokemon");
+        function mostrarDetalhes(pokemon) {
+            const id = Number(pokemon.id_pokemon);
+            const noTime = time.some(membro => Number(membro.id_pokemon) === id);
+            const atributos = criarElemento("div", undefined, "atributos-pokemon");
+            const botao = criarBotao("Adicionar ao time");
 
-            const hp = document.createElement("p");
-            hp.textContent = `HP: ${pokemon.hp}`;
+            for (const [rotulo, valor] of [
+                ["HP", pokemon.hp],
+                ["Ataque", pokemon.ataque],
+                ["Defesa", pokemon.defesa],
+                ["Ataque Especial", pokemon.ataque_especial],
+                ["Defesa Especial", pokemon.defesa_especial],
+                ["Velocidade", pokemon.velocidade]
+            ]) {
+                atributos.appendChild(criarElemento("p", `${rotulo}: ${valor}`));
+            }
 
-            const ataque = document.createElement("p");
-            ataque.textContent = `Ataque: ${pokemon.ataque}`;
+            if (noTime) {
+                botao.textContent = "Já está no time";
+                botao.disabled = true;
+            } else if (!estado.escolheu_iniciais) {
+                botao.textContent = escolhidos.has(id)
+                    ? "Desmarcar inicial"
+                    : "Escolher como inicial";
 
-            const defesa = document.createElement("p");
-            defesa.textContent = `Defesa: ${pokemon.defesa}`;
+                botao.addEventListener("click", () => {
+                    if (escolhidos.has(id)) {
+                        escolhidos.delete(id);
+                    } else if (escolhidos.size < faltam) {
+                        escolhidos.set(id, pokemon);
+                    } else {
+                        alert("Desmarque um inicial antes de escolher outro.");
+                        return;
+                    }
 
-            const ataqueEspecial = document.createElement("p");
-            ataqueEspecial.textContent =
-                `Ataque Especial: ${pokemon.ataque_especial}`;
+                    atualizarEscolha();
+                    mostrarDetalhes(pokemon);
+                });
+            } else if (!idsLiberados.has(id)) {
+                botao.textContent = "Bloqueado · Poké Mart";
+                botao.disabled = true;
+            } else {
+                botao.addEventListener("click", async () => {
+                    if (time.length >= 6) {
+                        alert("Seu time já está completo!");
+                        return;
+                    }
 
-            const defesaEspecial = document.createElement("p");
-            defesaEspecial.textContent =
-                `Defesa Especial: ${pokemon.defesa_especial}`;
+                    botao.disabled = true;
+                    try {
+                        await alterarTime({ acao: "adicionar", id_pokemon: id });
+                        time.push(pokemon);
+                        mostrarTime();
+                        if (detalhes.contains(botao)) mostrarDetalhes(pokemon);
+                    } catch (erro) {
+                        alert(erro.message);
+                        botao.disabled = false;
+                    }
+                });
+            }
 
-            const velocidade = document.createElement("p");
-            velocidade.textContent = `Velocidade: ${pokemon.velocidade}`;
-
-            atributos.append(
-                hp,
-                ataque,
-                defesa,
-                ataqueEspecial,
-                defesaEspecial,
-                velocidade
-            );
-
-            const botaoAdicionar = document.createElement("button");
-            botaoAdicionar.textContent = "Adicionar ao time";
-            botaoAdicionar.type = "button";
-
-            botaoAdicionar.addEventListener("click", function () {
-                adicionarPokemon(pokemon);
-            });
-
-            detalhes.append(
-                nome,
-                imagem,
-                tipos,
+            detalhes.replaceChildren(
+                criarElemento("h3", pokemon.nome),
+                criarImagem(pokemon.imagem, pokemon.nome, "imagem-detalhes"),
+                criarTipos(pokemon),
                 atributos,
-                botaoAdicionar
+                botao
             );
         }
 
         function mostrarTime() {
-            slots.forEach(function (slot, indice) {
+            slots.forEach((slot, indice) => {
                 slot.replaceChildren();
+                const pokemon = time[indice];
+                if (!pokemon) return;
 
-                if (time[indice]) {
-                    const pokemon = time[indice];
+                const id = Number(pokemon.id_pokemon);
+                slot.append(
+                    criarImagem(pokemon.imagem, pokemon.nome, "imagem-pokemon-time"),
+                    criarElemento("p", pokemon.nome, "nome-pokemon-time")
+                );
 
-                    const imagem = document.createElement("img");
-                    imagem.src = pokemon.imagem;
-                    imagem.alt = pokemon.nome;
-                    imagem.classList.add("imagem-pokemon-time");
+                if (!estado.escolheu_iniciais) return;
 
-                    const nome = document.createElement("p");
-                    nome.textContent = pokemon.nome;
+                const excluir = criarBotao("Excluir");
+                excluir.addEventListener("click", async () => {
+                    excluir.disabled = true;
+                    try {
+                        await alterarTime({ acao: "remover", id_pokemon: id });
 
-                    nome.classList.add("nome-pokemon-time");
+                        const posicao = time.findIndex(
+                            membro => Number(membro.id_pokemon) === id
+                        );
+                        if (posicao !== -1) time.splice(posicao, 1);
 
-                    const botaoExcluir = document.createElement("button");
-                    botaoExcluir.textContent = "Excluir";
-                    botaoExcluir.type = "button";
+                        mostrarTime();
+                        detalhes.replaceChildren();
+                    } catch (erro) {
+                        alert(erro.message);
+                        excluir.disabled = false;
+                    }
+                });
+                slot.appendChild(excluir);
 
-                    botaoExcluir.addEventListener("click", function () {
-                        excluirPokemon(indice);
+                for (const regra of evolucoes) {
+                    if (Number(regra.id_pokemon) !== id) continue;
+
+                    const evoluir = criarBotao(
+                        `Evoluir para ${regra.destino} (${regra.item})`
+                    );
+                    const jaNoTime = Number(regra.destino_no_time) === 1;
+                    evoluir.disabled = jaNoTime || Number(regra.quantidade) <= 0;
+
+                    if (evoluir.disabled) {
+                        evoluir.textContent += jaNoTime
+                            ? " - forma já no time"
+                            : " - compre na loja";
+                    }
+
+                    evoluir.addEventListener("click", async () => {
+                        const mensagem = `Usar 1 ${regra.item} para evoluir ${pokemon.nome} para ${regra.destino}?`;
+                        if (!confirm(mensagem)) return;
+
+                        evoluir.disabled = true;
+                        try {
+                            await alterarTime({
+                                acao: "evoluir",
+                                id_pokemon: id,
+                                id_evolucao: regra.id_evolucao
+                            });
+                            window.location.reload();
+                        } catch (erro) {
+                            alert(erro.message);
+                            evoluir.disabled = false;
+                        }
                     });
 
-                    slot.append(imagem, nome, botaoExcluir);
+                    slot.appendChild(evoluir);
                 }
             });
         }
 
-        async function adicionarPokemon(pokemon) {
-            const pokemonExistente = time.find(function (item) {
-                return item.id_pokemon == pokemon.id_pokemon;
-            });
+        function criarCardPokemon(pokemon) {
+            const card = criarElemento("article", undefined, "card-pokemon");
+            card.append(
+                criarElemento("h3", pokemon.nome, "nome-pokemon"),
+                criarImagem(pokemon.imagem, pokemon.nome, "imagem-pokemon"),
+                criarTipos(pokemon)
+            );
 
-            if (pokemonExistente) {
-                alert("Esse Pokémon já está no seu time!");
-                return;
+            if (
+                estado.escolheu_iniciais &&
+                !idsLiberados.has(Number(pokemon.id_pokemon))
+            ) {
+                card.appendChild(criarElemento("p", "Bloqueado"));
             }
 
-            if (time.length >= 6) {
-                alert("Seu time já está completo!");
-                return;
-            }
-
-            try {
-                const resposta = await fetch("../../../public/api/gerenciarTime.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        acao: "adicionar",
-                        id_pokemon: pokemon.id_pokemon
-                    })
-                });
-
-                const resultado = await resposta.json();
-
-                if (!resposta.ok) {
-                    throw new Error(
-                        resultado.mensagem || "Erro ao adicionar Pokémon."
-                    );
-                }
-
-                if (!resultado.sucesso) {
-                    alert(resultado.mensagem);
-                    return;
-                }
-
-                time.push(pokemon);
-
-                mostrarTime();
-
-            } catch (erro) {
-                console.error("Erro ao adicionar Pokémon:", erro);
-                alert("Não foi possível adicionar o Pokémon. Tente novamente.");
-            }
+            card.addEventListener("click", () => mostrarDetalhes(pokemon));
+            return card;
         }
 
-        async function excluirPokemon(indice) {
-            const pokemon = time[indice];
+        function mostrarGrupo(titulo, grupo, mensagemVazio) {
+            const cabecalho = criarElemento("h3", titulo);
+            cabecalho.style.gridColumn = "1 / -1";
+            cabecalho.style.borderBottom = "2px solid #b9d5e9";
+            cabecalho.style.paddingBottom = "6px";
+            lista.appendChild(cabecalho);
 
-            if (!pokemon) {
-                return;
-            }
-
-            try {
-                const resposta = await fetch("../../../public/api/gerenciarTime.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        acao: "remover",
-                        id_pokemon: pokemon.id_pokemon
-                    })
-                });
-
-                const resultado = await resposta.json();
-
-                if (!resposta.ok) {
-                    throw new Error(
-                        resultado.mensagem || "Erro ao remover Pokémon."
-                    );
-                }
-
-                if (!resultado.sucesso) {
-                    alert(resultado.mensagem);
-                    return;
-                }
-
-                time.splice(indice, 1);
-
-                mostrarTime();
-
-            } catch (erro) {
-                console.error("Erro ao remover Pokémon:", erro);
-                alert("Não foi possível remover o Pokémon. Tente novamente.");
+            if (grupo.length) {
+                lista.append(...grupo.map(criarCardPokemon));
+            } else {
+                const mensagem = criarElemento("p", mensagemVazio);
+                mensagem.style.gridColumn = "1 / -1";
+                lista.appendChild(mensagem);
             }
         }
 
         function mostrarPokemons(listaPokemons) {
             lista.replaceChildren();
 
-            listaPokemons.forEach(function (pokemon) {
-                const card = document.createElement("article");
-                card.classList.add("card-pokemon");
+            if (!estado.escolheu_iniciais) {
+                lista.append(...listaPokemons.map(criarCardPokemon));
+                return;
+            }
 
-                const nome = document.createElement("h3");
-                nome.classList.add("nome-pokemon");
-                nome.textContent = pokemon.nome;
+            const meus = [];
+            const bloqueados = [];
 
-                const imagem = document.createElement("img");
-                imagem.classList.add("imagem-pokemon");
-                imagem.src = pokemon.imagem;
-                imagem.alt = pokemon.nome;
+            for (const pokemon of listaPokemons) {
+                const grupo = idsLiberados.has(Number(pokemon.id_pokemon))
+                    ? meus
+                    : bloqueados;
+                grupo.push(pokemon);
+            }
 
-                const tipos = document.createElement("div");
-                tipos.classList.add("tipos-pokemon");
-
-                pokemon.tipos.forEach(function (tipo) {
-                    const icone = document.createElement("img");
-                    icone.classList.add("icone-tipo");
-                    icone.src = tipo.imagem;
-                    icone.alt = tipo.nome;
-                    icone.title = tipo.nome;
-
-                    tipos.appendChild(icone);
-                });
-
-                card.append(nome, imagem, tipos);
-
-                card.addEventListener("click", function () {
-                    mostrarDetalhes(pokemon);
-                });
-
-                lista.appendChild(card);
-            });
+            mostrarGrupo("Meus Pokémon", meus, "Nenhum Pokémon teu encontrado.");
+            mostrarGrupo(
+                "Pokémon bloqueados",
+                bloqueados,
+                "Nenhum Pokémon bloqueado encontrado."
+            );
         }
 
         mostrarPokemons(pokemons);
         mostrarTime();
 
-        busca.addEventListener("input", function () {
-            const nomePesquisado = busca.value.toLowerCase().trim();
-
-            const resultado = pokemons.filter(function (pokemon) {
-                return pokemon.nome.toLowerCase().includes(nomePesquisado);
-            });
-
-            mostrarPokemons(resultado);
+        busca.addEventListener("input", () => {
+            const nomePesquisado = busca.value.trim().toLowerCase();
+            mostrarPokemons(
+                pokemons.filter(pokemon =>
+                    pokemon.nome.toLowerCase().includes(nomePesquisado)
+                )
+            );
         });
-
-        console.log("Pokémon recebidos da API:", pokemons);
-
     } catch (erro) {
         quantidade.textContent = "Erro ao carregar";
         lista.textContent = "Não foi possível carregar os Pokémon.";
-
-        console.error("Erro ao carregar os Pokémon:", erro);
+        console.error("Erro ao carregar o Team Builder:", erro);
     }
 }
 
