@@ -4,6 +4,7 @@ session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
 
+require_once __DIR__ . "/../../app/autoload.php";
 require_once __DIR__ . "/../../app/controllers/TimePokemonController.php";
 require_once __DIR__ . "/../../app/controllers/TimeMembroController.php";
 require_once __DIR__ . "/../../app/models/TimeMembro.php";
@@ -61,7 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         "sucesso" => true,
         "pokemons" => $pokemons,
         "desbloqueio" => $estado,
-        "evolucoes" => $membroController->listarEvolucoes((int) $usuarioId, $id_time)
+        "evolucoes" => (new EvolucaoController())->listarEvolucoes((int) $usuarioId, $id_time)
     ]);
 }
 
@@ -88,7 +89,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ids = array_map(static function ($id) {
             return filter_var($id, FILTER_VALIDATE_INT);
         }, array_values($entrada));
-        $catalogo = (new PokemonController())->listarTeamBuilder();
+        $pokemonController = new PokemonController();
+        $catalogo = $acao === "escolher_iniciais"
+            ? $pokemonController->listarTeamBuilder()
+            : $pokemonController->listarLoja();
         $permitidos = array_map("intval", array_column($catalogo, "id_pokemon"));
         if (in_array(false, $ids, true) || count(array_unique($ids)) !== count($ids) ||
             array_diff($ids, $permitidos)) {
@@ -99,7 +103,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($acao === "escolher_iniciais") {
                 $desbloqueio->escolher($usuarioId, $id_time, $ids);
             } else {
-                $desbloqueio->comprar($usuarioId, $ids[0]);
+                $precos = array_column($catalogo, "preco_pokemon", "id_pokemon");
+                $desbloqueio->comprar($usuarioId, $ids[0], $precos[$ids[0]]);
             }
             responder(["sucesso" => true]);
         } catch (DomainException $erro) {
@@ -127,15 +132,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_pokemon = (int) $id_pokemon;
 
     if ($acao === "evoluir") {
-        $idEvolucao = filter_var($dados["id_evolucao"] ?? null, FILTER_VALIDATE_INT);
-        if ($idEvolucao === false || $idEvolucao <= 0) {
-            responder(["sucesso" => false, "mensagem" => "Evolução inválida."]);
-        }
-
         try {
-            $membroController->evoluir((int) $usuarioId, $id_time, $id_pokemon, $idEvolucao);
+            (new EvolucaoController())->evoluir((int) $usuarioId, $id_time, $id_pokemon, $dados["id_evolucao"] ?? null);
             responder(["sucesso" => true]);
-        } catch (DomainException $e) {
+        } catch (EvolucaoException $e) {
             responder(["sucesso" => false, "mensagem" => $e->getMessage()]);
         } catch (Throwable $e) {
             error_log($e->getMessage());

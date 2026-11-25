@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/app/services/PokemonAPI.php";
 require_once __DIR__ . "/app/dao/PokemonDAO.php";
+require_once __DIR__ . "/app/autoload.php";
 
 set_time_limit(0);
 
@@ -45,5 +46,19 @@ echo "\n--------------------------------\n";
 echo "Importação finalizada!\n";
 echo "Importados com sucesso: $sucessos\n";
 echo "Erros: $erros\n";
+
+echo "\nCadastro das regras de evolução\n";
+try {
+    $novasRegras = (new EvolucaoController())->importarRegras();
+    echo "$novasRegras regras novas cadastradas.\n";
+} catch (Throwable $e) {
+    echo "Falha ao cadastrar as regras. Confira se os Pokémon e os itens de evolução estão cadastrados.\n";
+    if ($e instanceof EvolucaoException) {
+        echo htmlspecialchars($e->getMessage(), ENT_QUOTES, "UTF-8") . "\n";
+    }
+    error_log("Erro ao importar regras de evolução: " . $e->getMessage());
+    echo "</pre>";
+    exit(1);
+}
 
 echo "</pre>";

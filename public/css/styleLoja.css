@@ -268,7 +268,8 @@ body {
 
 /* BOTÃO COMPRAR */
 
-.card-item button {
+.card-item button,
+.setores-loja a {
     width: 100%;
     padding: 10px;
     flex-shrink: 0;
@@ -288,14 +289,16 @@ body {
     margin-top: 0;
 }
 
-.card-item button:hover {
+.card-item button:hover,
+.setores-loja a:hover {
     background-color: #28556f;
     transform: translateY(-2px);
 
     box-shadow: 0 6px 0 #1d4055;
 }
 
-.card-item button:active {
+.card-item button:active,
+.setores-loja a:active {
     transform: translateY(2px);
     box-shadow: 0 1px 0 #1d4055;
 }
@@ -411,4 +414,36 @@ body {
 
     align-self: center;
     margin: 5px auto 10px;
+}
+
+.setores-loja {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px;
+    background: #edf6fc;
+    border: 3px solid #b9d5e9;
+}
+
+.setores-loja a {
+    display: block;
+    box-sizing: border-box;
+    text-align: center;
+    text-decoration: none;
+}
+
+.setores-loja a[aria-current="page"] {
+    background: #28556f;
+    border-color: #5ce5e8;
+    box-shadow: 0 3px 0 #1d4055;
+    color: #fccc0a;
+}
+
+.setores-loja a:focus-visible {
+    outline: 2px solid #28556f;
+    outline-offset: 3px;
+}
+
+.painel-itens[hidden] {
+    display: none;
 }

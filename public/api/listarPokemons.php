@@ -9,9 +9,10 @@ require_once __DIR__ . "/../../app/controllers/PokemonController.php";
 try {
     $controller = new PokemonController();
 
-    $pokemons = $controller->listarTeamBuilder();
+    $loja = ($_GET["catalogo"] ?? "") === "loja";
+    $pokemons = $loja ? $controller->listarLoja() : $controller->listarTeamBuilder();
 
-    if (isset($_SESSION["id_usuario"])) {
+    if (!$loja && isset($_SESSION["id_usuario"])) {
         $estado = (new PokemonDesbloqueioDAO())->estado($_SESSION["id_usuario"]);
         $idsExtras = array_diff($estado["desbloqueados"], array_column($pokemons, "id_pokemon"));
         if ($idsExtras) {

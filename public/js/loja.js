@@ -17,7 +17,7 @@ async function carregarPokemonsLoja() {
             listaPokemonsLoja.textContent = "Escolha seus três iniciais no Team Builder para liberar as compras.";
             return;
         }
-        const catalogo = await fetch("../../../public/api/listarPokemons.php");
+        const catalogo = await fetch("../../../public/api/listarPokemons.php?catalogo=loja");
         if (!catalogo.ok) {
             throw new Error("Falha ao carregar o catálogo.");
         }
@@ -39,9 +39,14 @@ async function carregarPokemonsLoja() {
             imagem.loading = "lazy";
             const botao = document.createElement("button");
             botao.type = "button";
-            botao.textContent = `Comprar por ${formatarPreco(estado.preco_pokemon)}`;
+            botao.textContent = "Comprar";
+            botao.setAttribute("aria-label", "Comprar " + pokemon.nome);
+            const preco = document.createElement("p");
+            preco.classList.add("valor-preco");
+            preco.textContent = "Preço: " + formatarPreco(pokemon.preco_pokemon);
             botao.addEventListener("click", async () => {
                 botao.disabled = true;
+                botao.textContent = "Comprando...";
                 try {
                     const compra = await fetch(API_EQUIPE, {
                         method: "POST",
@@ -57,9 +62,10 @@ async function carregarPokemonsLoja() {
                 } catch (erro) {
                     mostrarMensagem(erro.message);
                     botao.disabled = false;
+                    botao.textContent = "Comprar";
                 }
             });
-            card.append(nome, imagem, botao);
+            card.append(nome, botao, imagem, preco);
             listaPokemonsLoja.appendChild(card);
         }
         if (!listaPokemonsLoja.children.length) {

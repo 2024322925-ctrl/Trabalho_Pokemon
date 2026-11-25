@@ -4,7 +4,6 @@ require_once __DIR__ . "/../../config/database.php";
 
 class PokemonDesbloqueioDAO
 {
-    public const PRECO = 3000;
     private $con;
 
     public function __construct()
@@ -23,8 +22,7 @@ class PokemonDesbloqueioDAO
 
         return [
             "escolheu_iniciais" => $escolheu,
-            "desbloqueados" => array_map("intval", $stmt->fetchAll(PDO::FETCH_COLUMN)),
-            "preco_pokemon" => self::PRECO
+            "desbloqueados" => array_map("intval", $stmt->fetchAll(PDO::FETCH_COLUMN))
         ];
     }
 
@@ -105,7 +103,7 @@ class PokemonDesbloqueioDAO
         }
     }
 
-    public function comprar($usuario, $id)
+    public function comprar($usuario, $id, int $preco)
     {
         $this->con->beginTransaction();
         try {
@@ -126,7 +124,7 @@ class PokemonDesbloqueioDAO
             $stmt = $this->con->prepare(
                 "UPDATE carteira SET saldo = saldo - ? WHERE id_usuario = ? AND saldo >= ?"
             );
-            $stmt->execute([self::PRECO, $usuario, self::PRECO]);
+            $stmt->execute([$preco, $usuario, $preco]);
             if ($stmt->rowCount() !== 1) {
                 throw new DomainException("Saldo insuficiente.");
             }

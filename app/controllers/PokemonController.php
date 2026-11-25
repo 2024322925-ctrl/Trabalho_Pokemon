@@ -21,6 +21,11 @@ class PokemonController
         return $this->pokemonDAO->listarTeamBuilder();
     }
 
+    public function listarLoja()
+    {
+        return $this->pokemonDAO->listarLoja();
+    }
+
     public function buscarPokemon($id_pokemon)
     {
         return $this->pokemonDAO->buscarPorId($id_pokemon);

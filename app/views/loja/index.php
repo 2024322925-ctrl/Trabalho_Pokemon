@@ -8,6 +8,8 @@ if (!isset($_SESSION["id_usuario"])) {
     exit;
 }
 
+$mostrarItens = ($_GET["setor"] ?? "") === "itens";
+
 ?>
 
 <!DOCTYPE html>
@@ -44,16 +46,21 @@ if (!isset($_SESSION["id_usuario"])) {
             </div>
         </header>
 
+        <nav class="setores-loja" aria-label="Setores da loja">
+            <a href="?setor=pokemon"<?= $mostrarItens ? "" : ' aria-current="page"' ?>>Pokémon</a>
+            <a href="?setor=itens"<?= $mostrarItens ? ' aria-current="page"' : "" ?>>Itens</a>
+        </nav>
+
         <section class="conteudo-loja">
 
-            <div id="mensagem-loja"></div>
+            <div id="mensagem-loja" role="status"></div>
 
-            <section class="painel-itens">
+            <section class="painel-itens" id="setor-pokemons"<?= $mostrarItens ? " hidden" : "" ?>>
                 <h2>Pokémon para desbloquear</h2>
                 <div id="lista-pokemons-loja" class="lista-itens"></div>
             </section>
 
-            <section class="painel-itens">
+            <section class="painel-itens" id="setor-itens"<?= $mostrarItens ? "" : " hidden" ?>>
 
                 <h2>Itens disponíveis</h2>
 
