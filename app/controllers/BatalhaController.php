@@ -58,7 +58,7 @@ class BatalhaController
 
 
     
-    public function calcularDano($atacante, $defensor, $ataque)
+    public function calcularDano($atacante, $defensor, $ataque, $efetividade = null)
     {
         $nivel = (int) ($atacante["nivel"] ?? $atacante["nivel_adversario"] ?? 1);
         $poder = (int) ($ataque["poder"] ?? 0);
@@ -68,9 +68,15 @@ class BatalhaController
             $atributoAtaque = (int) $atacante["ataque"];
             $atributoDefesa = (int) $defensor["defesa"];
 
+            $estagioAtaque = $atacante["estagios"]["ataque"] ?? 0;
+            $estagioDefesa = $defensor["estagios"]["defesa"] ?? 0;
+
         } elseif ($ataque["categoria"] === "special") {
             $atributoAtaque = (int) $atacante["ataque_especial"];
             $atributoDefesa = (int) $defensor["defesa_especial"];
+
+            $estagioAtaque = $atacante["estagios"]["ataque_especial"] ?? 0;
+            $estagioDefesa = $defensor["estagios"]["defesa_especial"] ?? 0;
 
         } else {
             return 0;
@@ -80,14 +86,20 @@ class BatalhaController
             return 0;
         }
 
-        // Calcula a efetividade contra os tipos do defensor
-        $efetividade = $this->calcularEfetividadeTipos(
-            $ataque["id_tipo"],
-            $defensor["tipos"] ?? []
-        );
+        // Aplica os multiplicadores dos estágios
+        $atributoAtaque *= $this->calcularMultiplicadorEstagio($estagioAtaque);
+        $atributoDefesa *= $this->calcularMultiplicadorEstagio($estagioDefesa);
+
+        // Calcula a efetividade somente se ela não foi informada
+        if ($efetividade === null) {
+            $efetividade = $this->calcularEfetividadeTipos(
+                $ataque["id_tipo"],
+                $defensor["tipos"] ?? []
+            );
+        }
 
         // Ataque sem efeito
-        if ($efetividade === 0.0 || $efetividade === 0) {
+        if ($efetividade == 0) {
             return 0;
         }
 
@@ -115,11 +127,22 @@ class BatalhaController
         $variacao = random_int(90, 110) / 100;
 
         // Calcula o dano final
+        $multiplicadorQueimadura = 1;
+
+        if (
+            $ataque["categoria"] === "physical" &&
+            ($atacante["status_atual"] ?? null) === "queimado"
+        ) {
+            $multiplicadorQueimadura = 0.5;
+        }
+
+        // Calcula o dano final
         $dano = round(
             $danoBase
             * $stab
             * $efetividade
             * $variacao
+            * $multiplicadorQueimadura
         );
 
         return max(1, $dano);
@@ -134,6 +157,20 @@ class BatalhaController
             $idTime,
             $idPokemon,
             $hpAtual
+        );
+    }
+
+    public function atualizarEstadoPokemon(
+        $idTime,
+        $idPokemon,
+        $hpAtual,
+        $statusAtual
+    ) {
+        return $this->batalhaDAO->atualizarEstadoPokemon(
+            $idTime,
+            $idPokemon,
+            $hpAtual,
+            $statusAtual
         );
     }
 
@@ -335,6 +372,7 @@ class BatalhaController
 
         return array_merge($pokemon, [
             "hp_maximo" => $hpMaximo,
+            "hp_atual" => $hpAtual,
             "hp_atual_exibicao" => $hpAtual,
             "porcentagem_hp" => $porcentagemHp,
 
@@ -360,6 +398,24 @@ class BatalhaController
         $novoEstagio = (int) $estagioAtual + (int) $alteracao;
 
         return max(-3, min(3, $novoEstagio));
+    }
+
+    // Calcula o multiplicador de um estágio de atributo
+    public function calcularMultiplicadorEstagio($estagio)
+    {
+        $multiplicadores = [
+            -3 => 0.4,
+            -2 => 0.5,
+            -1 => 2 / 3,
+            0 => 1,
+            1 => 1.5,
+            2 => 2,
+            3 => 2.5
+        ];
+
+        $estagio = max(-3, min(3, (int) $estagio));
+
+        return $multiplicadores[$estagio];
     }
 
 
@@ -562,6 +618,427 @@ class BatalhaController
 
         return $multiplicador;
     }
+
+    // Aplica alterações nos estágios dos atributos de um Pokémon
+    public function aplicarAlteracoesAtributos($pokemon, $alteracoes)
+    {
+        $atributos = [
+            "attack" => "ataque",
+            "defense" => "defesa",
+            "special_attack" => "ataque_especial",
+            "special_defense" => "defesa_especial",
+            "speed" => "velocidade"
+        ];
+
+        $nomesAtributos = [
+            "ataque" => "Ataque",
+            "defesa" => "Defesa",
+            "ataque_especial" => "Ataque Especial",
+            "defesa_especial" => "Defesa Especial",
+            "velocidade" => "Velocidade"
+        ];
+
+        if (!isset($pokemon["estagios"])) {
+            $pokemon["estagios"] = [
+                "ataque" => 0,
+                "defesa" => 0,
+                "ataque_especial" => 0,
+                "defesa_especial" => 0,
+                "velocidade" => 0
+            ];
+        }
+
+        $mensagens = [];
+
+        foreach ($alteracoes as $alteracao) {
+            $atributoBanco = $alteracao["atributo"] ?? null;
+
+            // Padroniza os nomes recebidos do banco
+            $atributoBanco = str_replace("-", "_", (string) $atributoBanco);
+            $valorAlteracao = (int) ($alteracao["alteracao"] ?? 0);
+
+            if (
+                !isset($atributos[$atributoBanco]) ||
+                $valorAlteracao === 0
+            ) {
+                continue;
+            }
+
+            $atributo = $atributos[$atributoBanco];
+
+            $estagioAtual = $pokemon["estagios"][$atributo] ?? 0;
+
+            $novoEstagio = $this->calcularNovoEstagio(
+                $estagioAtual,
+                $valorAlteracao
+            );
+
+            $pokemon["estagios"][$atributo] = $novoEstagio;
+
+            if ($novoEstagio === $estagioAtual) {
+                $mensagens[] = $nomesAtributos[$atributo]
+                    . " não pode mais "
+                    . ($valorAlteracao > 0 ? "aumentar!" : "diminuir!");
+            } else {
+                $mensagens[] = $nomesAtributos[$atributo]
+                    . ($valorAlteracao > 0 ? " aumentou!" : " diminuiu!");
+            }
+        }
+
+        return [
+            "pokemon" => $pokemon,
+            "mensagens" => $mensagens
+        ];
+    }
+    
+    public function selecionarAtaqueAleatorio($pokemonAdversario)
+    {
+        $ataques = $pokemonAdversario["ataques"] ?? [];
+
+        if (empty($ataques)) {
+            return false;
+        }
+
+        $indice = array_rand($ataques);
+
+        return $ataques[$indice];
+    }
+
+    // Calcula a velocidade considerando os estágios do Pokémon
+    public function calcularVelocidadeEfetiva($pokemon)
+    {
+        $velocidade = (int) ($pokemon["velocidade"] ?? 0);
+
+        $estagioVelocidade = $pokemon["estagios"]["velocidade"] ?? 0;
+
+        return $velocidade * $this->calcularMultiplicadorEstagio(
+            $estagioVelocidade
+        );
+    }
+
+
+    // Define quem realizará o primeiro ataque
+    public function definirOrdemTurnos($pokemonJogador, $pokemonAdversario)
+    {
+        $velocidadeJogador = $this->calcularVelocidadeEfetiva(
+            $pokemonJogador
+        );
+
+        $velocidadeAdversario = $this->calcularVelocidadeEfetiva(
+            $pokemonAdversario
+        );
+
+        // O Pokémon mais rápido começa
+        if ($velocidadeJogador > $velocidadeAdversario) {
+            return [
+                "primeiro" => "jogador",
+                "segundo" => "adversario"
+            ];
+        }
+
+        if ($velocidadeAdversario > $velocidadeJogador) {
+            return [
+                "primeiro" => "adversario",
+                "segundo" => "jogador"
+            ];
+        }
+
+        // Em caso de empate, sorteia quem começa
+        $primeiro = random_int(0, 1) === 0
+            ? "jogador"
+            : "adversario";
+
+        return [
+            "primeiro" => $primeiro,
+            "segundo" => $primeiro === "jogador"
+                ? "adversario"
+                : "jogador"
+        ];
+    }
+
+    // Verifica se um Pokémon consegue agir
+    
+    
+public function verificarCondicaoDeAcao(&$pokemon)
+{
+    $status = $pokemon["status_atual"] ?? null;
+
+    // Verifica sono
+    if ($status === "dormindo") {
+
+        $turnosRestantes = (int) ($pokemon["turnos_sono"] ?? 1);
+
+        if ($turnosRestantes > 0) {
+
+            $pokemon["turnos_sono"] = $turnosRestantes - 1;
+
+            // Se terminou o período de sono, acorda e pode agir
+            if ($pokemon["turnos_sono"] <= 0) {
+
+                $pokemon["status_atual"] = null;
+                unset($pokemon["turnos_sono"]);
+
+                // Continua a verificação das outras condições
+            } else {
+
+                return [
+                    "pode_agir" => false,
+                    "mensagem" => $pokemon["nome"]
+                        . " está dormindo e não pode atacar!"
+                ];
+            }
+        } else {
+
+            // Corrige eventual sono sem duração válida
+            $pokemon["status_atual"] = null;
+            unset($pokemon["turnos_sono"]);
+        }
+    }
+
+    // Verifica paralisia
+    if ($pokemon["status_atual"] === "paralisado") {
+
+        // 25% de chance de não conseguir agir
+        $naoPodeAgir = random_int(1, 100) <= 25;
+
+        if ($naoPodeAgir) {
+            return [
+                "pode_agir" => false,
+                "mensagem" => $pokemon["nome"]
+                    . " está paralisado e não conseguiu se mover!"
+            ];
+        }
+    }
+
+    return [
+        "pode_agir" => true,
+        "mensagem" => null
+    ];
+}
+
+
+
+    // Executa um ataque e aplica seus efeitos
+
+    
+    
+    
+public function executarAtaque(&$atacante, &$defensor, $ataque)
+{
+    $mensagensEfeito = [];
+    $mensagem = "";
+    $mensagemEfetividade = "";
+    $dano = 0;
+    $efetividade = 1;
+
+    // Decodifica os efeitos adicionais do ataque
+    $dadosEfeito = [];
+
+    if (!empty($ataque["dados_efeito"])) {
+        $dadosEfeito = json_decode($ataque["dados_efeito"], true) ?? [];
+    }
+
+    // Verifica a precisão
+    $precisao = (float) ($ataque["precisao"] ?? 100);
+
+    if (random_int(1, 100) > $precisao) {
+        $mensagem = $atacante["nome"]
+            . " usou "
+            . $ataque["nome"]
+            . ", mas errou o ataque!";
+
+        return [
+            "atacante" => $atacante,
+            "defensor" => $defensor,
+            "mensagem" => $mensagem,
+            "mensagens_efeito" => [],
+            "mensagem_efetividade" => "",
+            "dano" => 0,
+            "efetividade" => 1
+        ];
+    }
+
+    $categoria = $ataque["categoria"] ?? null;
+    $poder = (int) ($ataque["poder"] ?? 0);
+
+    // Aplica alterações nos estágios dos atributos
+    $alteracoes = $dadosEfeito["alteracoes_atributos"] ?? [];
+
+    if (!empty($alteracoes)) {
+
+        $alvoAlteracoes = $dadosEfeito["alvo"] ?? "atacante";
+
+        if ($alvoAlteracoes === "defensor") {
+            $resultadoAlteracoes = $this->aplicarAlteracoesAtributos(
+                $defensor,
+                $alteracoes
+            );
+
+            $defensor = $resultadoAlteracoes["pokemon"];
+
+        } else {
+            $resultadoAlteracoes = $this->aplicarAlteracoesAtributos(
+                $atacante,
+                $alteracoes
+            );
+
+            $atacante = $resultadoAlteracoes["pokemon"];
+        }
+
+        $mensagensEfeito = array_merge(
+            $mensagensEfeito,
+            $resultadoAlteracoes["mensagens"]
+        );
+    }
+
+    // Identifica o status causado pelo ataque
+    $statusAtaque = $dadosEfeito["status"]
+        ?? $ataque["efeito_status"]
+        ?? null;
+
+    $statusPermitidos = [
+        "queimado",
+        "envenenado",
+        "paralisado",
+        "dormindo",
+        "congelado"
+    ];
+
+    // Aplica o efeito de status
+    if (
+        $statusAtaque !== null &&
+        in_array($statusAtaque, $statusPermitidos, true) &&
+        (int) ($defensor["hp_atual"] ?? 0) > 0
+    ) {
+        $statusAtual = $defensor["status_atual"] ?? null;
+
+        if (
+            $statusAtual === null ||
+            $statusAtual === "" ||
+            $statusAtual === "normal"
+        ) {
+            $chanceStatus = (float) (
+                $dadosEfeito["chance_status"]
+                ?? $ataque["chance_efeito"]
+                ?? 0
+            );
+
+            $efeitoAplicado = (
+                $chanceStatus <= 0 ||
+                random_int(1, 10000) <= ($chanceStatus * 100)
+            );
+
+            if ($efeitoAplicado) {
+                $defensor["status_atual"] = $statusAtaque;
+
+                if ($statusAtaque === "dormindo") {
+                    $defensor["turnos_sono"] = random_int(1, 3);
+                }
+
+                $nomesStatus = [
+                    "queimado" => "queimadura",
+                    "envenenado" => "envenenamento",
+                    "paralisado" => "paralisia",
+                    "dormindo" => "sono",
+                    "congelado" => "congelamento"
+                ];
+
+                $mensagensEfeito[] = $defensor["nome"]
+                    . " foi afetado por "
+                    . $nomesStatus[$statusAtaque]
+                    . "!";
+            }
+        }
+    }
+
+    // Ataques sem dano
+    if ($poder <= 0 || $categoria === "status") {
+        $mensagem = $atacante["nome"]
+            . " usou "
+            . $ataque["nome"]
+            . "!";
+
+        return [
+            "atacante" => $atacante,
+            "defensor" => $defensor,
+            "mensagem" => $mensagem,
+            "mensagens_efeito" => $mensagensEfeito,
+            "mensagem_efetividade" => "",
+            "dano" => 0,
+            "efetividade" => 1
+        ];
+    }
+
+    // Verifica se o defensor já foi derrotado
+    if ((int) ($defensor["hp_atual"] ?? 0) <= 0) {
+        return [
+            "atacante" => $atacante,
+            "defensor" => $defensor,
+            "mensagem" => "",
+            "mensagens_efeito" => $mensagensEfeito,
+            "mensagem_efetividade" => "",
+            "dano" => 0,
+            "efetividade" => 1
+        ];
+    }
+
+    // Calcula a efetividade do tipo
+    $efetividade = $this->calcularEfetividadeTipos(
+        $ataque["id_tipo"],
+        $defensor["tipos"] ?? []
+    );
+
+    // Calcula o dano
+    $dano = $this->calcularDano(
+        $atacante,
+        $defensor,
+        $ataque,
+        $efetividade
+    );
+
+    // Aplica o dano
+    $hpAnterior = (int) $defensor["hp_atual"];
+
+    $defensor["hp_atual"] = max(
+        0,
+        $hpAnterior - $dano
+    );
+
+    $defensor["hp_atual_exibicao"] = $defensor["hp_atual"];
+
+    $mensagem = $atacante["nome"]
+        . " usou "
+        . $ataque["nome"]
+        . " e causou "
+        . $dano
+        . " de dano!";
+
+    // Mensagem de efetividade
+    if ($efetividade > 1) {
+        $mensagemEfetividade = "É super eficaz!";
+    } elseif ($efetividade > 0 && $efetividade < 1) {
+        $mensagemEfetividade = "Não é muito eficaz...";
+    } elseif ($efetividade == 0) {
+        $mensagemEfetividade = "Não teve efeito!";
+    }
+
+    // Verifica se o defensor foi derrotado
+    if ($defensor["hp_atual"] <= 0) {
+        $mensagensEfeito[] = $defensor["nome"] . " foi derrotado!";
+    }
+
+    return [
+        "atacante" => $atacante,
+        "defensor" => $defensor,
+        "mensagem" => $mensagem,
+        "mensagens_efeito" => $mensagensEfeito,
+        "mensagem_efetividade" => $mensagemEfetividade,
+        "dano" => $dano,
+        "efetividade" => $efetividade
+    ];
+}
+
+
 
 
 }

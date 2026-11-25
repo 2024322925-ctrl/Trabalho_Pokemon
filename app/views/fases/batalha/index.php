@@ -1,4 +1,3 @@
-
 <?php
 
 session_start();
@@ -111,7 +110,10 @@ $posicoesPokemon = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap"
+        rel="stylesheet"
+    >
 
     <link rel="stylesheet" href="../../../../public/css/styleBatalha.css">
 </head>
@@ -124,20 +126,34 @@ $posicoesPokemon = [
         <section class="arena-batalha">
 
             <!-- STATUS DO JOGADOR -->
-            <div class="painel-status status-jogador">
+            <div
+                class="painel-status status-jogador"
+                data-id-pokemon="<?= (int) $pokemonInicial["id_pokemon"] ?>"
+            >
 
                 <div class="informacoes-status">
-                    <h2><?= htmlspecialchars($pokemonInicial["nome"], ENT_QUOTES, "UTF-8") ?></h2>
-                    <span>Nv. <?= (int) $pokemonInicial["nivel"] ?></span>
+                    <h2>
+                        <?= htmlspecialchars(
+                            $pokemonInicial["nome"],
+                            ENT_QUOTES,
+                            "UTF-8"
+                        ) ?>
+                    </h2>
+
+                    <span>
+                        Nv. <?= (int) $pokemonInicial["nivel"] ?>
+                    </span>
                 </div>
 
                 <div class="barra-hp">
-                    <div class="preenchimento-hp"
-                        style="width: <?= $pokemonInicial["porcentagem_hp"] ?>%;">
-                    </div>
+                    <div
+                        class="preenchimento-hp"
+                        id="hp-jogador"
+                        style="width: <?= $pokemonInicial["porcentagem_hp"] ?>%;"
+                    ></div>
                 </div>
 
-                <p class="texto-hp">
+                <p class="texto-hp" id="texto-hp-jogador">
                     HP: <?= $pokemonInicial["hp_atual_exibicao"] ?> /
                     <?= $pokemonInicial["hp_maximo"] ?>
                 </p>
@@ -156,25 +172,46 @@ $posicoesPokemon = [
                         <div class="cartao-equipe <?= $pokemon["pokemon_ativo"] ? 'pokemon-ativo' : '' ?>">
 
                             <img
-                                src="<?= htmlspecialchars($pokemon["imagem"], ENT_QUOTES, "UTF-8") ?>"
-                                alt="<?= htmlspecialchars($pokemon["nome"], ENT_QUOTES, "UTF-8") ?>"
+                                src="<?= htmlspecialchars(
+                                    $pokemon["imagem"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>"
+                                alt="<?= htmlspecialchars(
+                                    $pokemon["nome"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>"
                             >
 
                             <div class="dados-equipe">
 
-                                <h3><?= htmlspecialchars($pokemon["nome"], ENT_QUOTES, "UTF-8") ?></h3>
+                                <h3>
+                                    <?= htmlspecialchars(
+                                        $pokemon["nome"],
+                                        ENT_QUOTES,
+                                        "UTF-8"
+                                    ) ?>
+                                </h3>
 
-                                <p>Nv. <?= (int) $pokemon["nivel"] ?></p>
+                                <p>
+                                    Nv. <?= (int) $pokemon["nivel"] ?>
+                                </p>
 
                                 <div class="barra-hp">
-                                    <div class="preenchimento-hp"
-                                        style="width: <?= $pokemon["porcentagem_hp"] ?>%;">
-                                    </div>
+                                    <div
+                                        class="preenchimento-hp"
+                                        data-hp-equipe="<?= (int) $pokemon["id_pokemon"] ?>"
+                                        style="width: <?= $pokemon["porcentagem_hp"] ?>%;"
+                                    ></div>
                                 </div>
 
-                                <p class="texto-hp">
-                                    <?= $pokemon["hp_atual_exibicao"] ?> /
-                                    <?= $pokemon["hp_maximo"] ?> HP
+                                <p
+                                    class="texto-hp"
+                                    data-texto-hp-equipe="<?= (int) $pokemon["id_pokemon"] ?>"
+                                >
+                                    HP: <?= $pokemon["hp_atual_exibicao"] ?> /
+                                    <?= $pokemon["hp_maximo"] ?>
                                 </p>
 
                             </div>
@@ -199,8 +236,16 @@ $posicoesPokemon = [
                 <div class="plataforma-pokemon"></div>
 
                 <img
-                    src="<?= htmlspecialchars($pokemonInicial["imagem_exibicao"], ENT_QUOTES, "UTF-8") ?>"
-                    alt="<?= htmlspecialchars($pokemonInicial["nome"], ENT_QUOTES, "UTF-8") ?>"
+                    src="<?= htmlspecialchars(
+                        $pokemonInicial["imagem_exibicao"],
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
+                    alt="<?= htmlspecialchars(
+                        $pokemonInicial["nome"],
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
                 >
 
             </div>
@@ -217,8 +262,16 @@ $posicoesPokemon = [
                 <div class="plataforma-pokemon"></div>
 
                 <img
-                    src="<?= htmlspecialchars($pokemonAdversario["imagem_exibicao"], ENT_QUOTES, "UTF-8") ?>"
-                    alt="<?= htmlspecialchars($pokemonAdversario["nome"], ENT_QUOTES, "UTF-8") ?>"
+                    src="<?= htmlspecialchars(
+                        $pokemonAdversario["imagem_exibicao"],
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
+                    alt="<?= htmlspecialchars(
+                        $pokemonAdversario["nome"],
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
                 >
 
             </div>
@@ -227,16 +280,25 @@ $posicoesPokemon = [
             <div class="painel-status status-adversario">
 
                 <div class="informacoes-status">
-                    <h2><?= htmlspecialchars($pokemonAdversario["nome"], ENT_QUOTES, "UTF-8") ?></h2>
-                    <span>Nv. <?= (int) $pokemonAdversario["nivel_adversario"] ?></span>
+                    <h2>
+                        <?= htmlspecialchars(
+                            $pokemonAdversario["nome"],
+                            ENT_QUOTES,
+                            "UTF-8"
+                        ) ?>
+                    </h2>
+
+                    <span>
+                        Nv. <?= (int) $pokemonAdversario["nivel_adversario"] ?>
+                    </span>
                 </div>
 
                 <div class="barra-hp">
                     <div
                         class="preenchimento-hp"
                         id="hp-adversario"
-                        style="width: <?= $pokemonAdversario["porcentagem_hp"] ?>%;">
-                    </div>
+                        style="width: <?= $pokemonAdversario["porcentagem_hp"] ?>%;"
+                    ></div>
                 </div>
 
                 <p class="texto-hp" id="texto-hp-adversario">
@@ -251,11 +313,21 @@ $posicoesPokemon = [
         <!-- PARTE INFERIOR -->
         <section class="painel-acoes">
 
-            <div class="caixa-mensagem">
+            <div class="caixa-mensagem" id="registro-batalha">
 
-                <p id="mensagem-batalha">
-                    O que <?= htmlspecialchars($pokemonInicial["nome"], ENT_QUOTES, "UTF-8") ?> fará?
+                <p class="linha-registro" id="linha-registro-1">
+                    O que <?= htmlspecialchars(
+                        $pokemonInicial["nome"],
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?> fará?
                 </p>
+
+                <p class="linha-registro" id="linha-registro-2"></p>
+
+                <p class="linha-registro" id="linha-registro-3"></p>
+
+                <p class="linha-registro" id="linha-registro-4"></p>
 
             </div>
 
@@ -292,7 +364,11 @@ $posicoesPokemon = [
                             class="botao-ataque"
                             data-id-ataque="<?= (int) $ataque["id_ataque"] ?>"
                         >
-                            <?= htmlspecialchars($ataque["nome"], ENT_QUOTES, "UTF-8") ?>
+                            <?= htmlspecialchars(
+                                $ataque["nome"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>
                         </button>
 
                     <?php endforeach; ?>

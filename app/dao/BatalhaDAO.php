@@ -230,25 +230,37 @@ class BatalhaDAO
             return false;
         }
     }
-
-
-
-    // Atualiza o HP atual de um Pokémon do jogador
-    public function atualizarHPPokemon($idTime, $idPokemon, $hpAtual)
-    {
+    
+    // Atualiza o HP e o status atual de um Pokémon do jogador
+    public function atualizarEstadoPokemon(
+        $idTime,
+        $idPokemon,
+        $hpAtual,
+        $statusAtual
+    ) {
         $sql = "UPDATE pokemon_time_status
-                SET hp_atual = :hp_atual
+                SET hp_atual = :hp_atual,
+                    status_atual = :status_atual
                 WHERE id_time = :id_time
-                  AND id_pokemon = :id_pokemon";
+                AND id_pokemon = :id_pokemon";
 
         $stmt = $this->conexao->prepare($sql);
 
         $stmt->bindValue(":hp_atual", $hpAtual, PDO::PARAM_INT);
+
+        if ($statusAtual === null || $statusAtual === "") {
+            $stmt->bindValue(":status_atual", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(":status_atual", $statusAtual, PDO::PARAM_STR);
+        }
+
         $stmt->bindValue(":id_time", $idTime, PDO::PARAM_INT);
         $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
 
-        return $stmt->execute() && $stmt->rowCount() >= 0;
+        return $stmt->execute();
     }
+
+    
 
 }
 
