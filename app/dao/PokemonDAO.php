@@ -95,23 +95,68 @@ class PokemonDAO
         return $pokemon;
     }
 
+    private const INICIAIS_TEAM_BUILDER = [
+        "bulbasaur", "charmander", "squirtle", "caterpie", "weedle",
+        "pidgey", "rattata", "spearow", "ekans", "pikachu", "sandshrew",
+        "nidoran-f", "nidoran-m", "clefairy", "vulpix", "jigglypuff",
+        "zubat", "oddish", "paras", "venonat", "diglett", "meowth",
+        "psyduck", "mankey", "poliwag", "abra", "machop", "bellsprout",
+        "tentacool", "geodude", "slowpoke", "magnemite", "doduo",
+        "seel", "grimer", "shellder", "gastly", "drowzee", "krabby",
+        "voltorb", "exeggcute", "cubone", "koffing", "rhyhorn",
+        "horsea", "goldeen", "staryu", "magikarp", "eevee"
+    ];
+
     public function listarTeamBuilder()
     {
-        $permitidos = [
-            "bulbasaur", "charmander", "squirtle", "caterpie", "weedle",
-            "pidgey", "rattata", "spearow", "ekans", "pikachu", "sandshrew",
-            "nidoran-f", "nidoran-m", "clefairy", "vulpix", "jigglypuff",
-            "zubat", "oddish", "paras", "venonat", "diglett", "meowth",
-            "psyduck", "mankey", "poliwag", "abra", "machop", "bellsprout",
-            "tentacool", "geodude", "slowpoke", "magnemite", "doduo",
-            "seel", "grimer", "shellder", "gastly", "drowzee", "krabby",
-            "voltorb", "exeggcute", "cubone", "koffing", "rhyhorn",
-            "horsea", "goldeen", "staryu", "magikarp", "eevee", "ditto"
-        ];
-
-        return array_values(array_filter($this->listarTodos(), static function ($pokemon) use ($permitidos) {
-            return in_array(strtolower($pokemon["nome"]), $permitidos, true);
+        return array_values(array_filter($this->listarTodos(), static function ($pokemon) {
+            return in_array(strtolower($pokemon["nome"]), self::INICIAIS_TEAM_BUILDER, true);
         }));
+    }
+
+    public function listarLoja()
+    {
+        $regras = require __DIR__ . "/../models/regrasEvolucao.php";
+        $formasEvoluidas = array_fill_keys(array_column($regras, 1), true);
+        $catalogo = array_values(array_filter($this->listarTodos(), static function ($pokemon) use ($formasEvoluidas) {
+            return !isset($formasEvoluidas[strtolower($pokemon["nome"])]);
+        }));
+        foreach ($catalogo as &$pokemon) {
+            $pokemon["preco_pokemon"] = $this->calcularPrecoLoja($pokemon);
+        }
+        unset($pokemon);
+
+        return $catalogo;
+    }
+
+    private function calcularPrecoLoja(array $pokemon): int
+    {
+        $nome = strtolower($pokemon["nome"]);
+        $precosEspeciais = [
+            "ditto" => 5500,
+            "lapras" => 5000,
+            "articuno" => 8000,
+            "zapdos" => 8500,
+            "moltres" => 8500,
+            "mew" => 8500,
+            "mewtwo" => 9000
+        ];
+        if (isset($precosEspeciais[$nome])) {
+            return $precosEspeciais[$nome];
+        }
+
+        if (in_array($nome, self::INICIAIS_TEAM_BUILDER, true)) {
+            return 3000;
+        }
+
+        $total = $pokemon["hp"] + $pokemon["ataque"] + $pokemon["defesa"]
+            + $pokemon["ataque_especial"] + $pokemon["defesa_especial"] + $pokemon["velocidade"];
+
+        if ($total >= 550) return 7000;
+        if ($total >= 500) return 6000;
+        if ($total >= 450) return 5000;
+        if ($total >= 400) return 4500;
+        return 4000;
     }
 
     public function listarTodos()

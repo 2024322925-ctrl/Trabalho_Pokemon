@@ -7,12 +7,6 @@ async function carregarPokemons() {
 
     const apiCatalogo = "../../../public/api/listarPokemons.php";
     const apiTime = "../../../public/api/gerenciarTime.php";
-    const spritesItens = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items";
-    const spritesEspeciais = {
-        "king's rock": "kings-rock",
-        "king’s rock": "kings-rock",
-        "pretty feather": "pretty-wing"
-    };
 
     function criarElemento(tag, texto, classe) {
         const elemento = document.createElement(tag);
@@ -93,27 +87,9 @@ async function carregarPokemons() {
         const instrucoes = criarElemento("div");
         const texto = criarElemento("p");
         const confirmar = criarBotao("Confirmar equipe inicial");
-
-        const loja = criarElemento("a");
+        const loja = criarElemento("a", "\uD83D\uDED2 Pok\u00e9 Mart");
         loja.href = "../loja/index.php";
-        loja.style.cssText = `
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            margin: 6px 0 12px;
-            background: #286486;
-            color: white;
-            border: 2px solid #5ce5e8;
-            border-radius: 8px;
-            font-weight: bold;
-            text-decoration: none;
-        `;
-
-        const carrinho = criarElemento("span", "🛒");
-        carrinho.setAttribute("aria-hidden", "true");
-        loja.append(carrinho, "Poke Mart");
-
+        loja.style.cssText = "display:inline-flex;align-items:center;padding:8px 14px;margin:6px 0 12px;background:#286486;color:white;border:2px solid #5ce5e8;border-radius:8px;font-weight:bold;text-decoration:none";
         instrucoes.append(texto, estado.escolheu_iniciais ? loja : confirmar);
         lista.before(instrucoes);
 
@@ -198,7 +174,7 @@ async function carregarPokemons() {
                     mostrarDetalhes(pokemon);
                 });
             } else if (!idsLiberados.has(id)) {
-                botao.textContent = " Bloqueado · Ir à Poké Mart";
+                botao.textContent = "\uD83D\uDED2 Bloqueado \u00b7 Ir \u00e0 Pok\u00e9 Mart";
                 botao.addEventListener("click", () => {
                     window.location.href = "../loja/index.php";
                 });
@@ -272,35 +248,31 @@ async function carregarPokemons() {
                     const jaNoTime = Number(regra.destino_no_time) === 1;
                     const semItem = Number(regra.quantidade) <= 0;
                     evoluir.disabled = jaNoTime || semItem;
-                    evoluir.style.cssText =
-                        "display: inline-flex; align-items: center; gap: 6px;";
+                    evoluir.style.cssText = "display:inline-flex;align-items:center;gap:6px";
 
                     const nomeItem = regra.item.trim().toLowerCase();
-                    const sprite = spritesEspeciais[nomeItem] ??
-                        nomeItem.replace(/\s+/g, "-");
-
+                    const spritesEspeciais = {
+                        "king's rock": "kings-rock",
+                        "king\u2019s rock": "kings-rock",
+                        "pretty feather": "pretty-wing"
+                    };
+                    const sprite = spritesEspeciais[nomeItem] ?? nomeItem.replace(/\s+/g, "-");
                     const icone = criarImagem(
-                        `${spritesItens}/${sprite}.png`,
+                        `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${sprite}.png`,
                         "",
                         "icone-item-evolucao"
                     );
-                    icone.style.cssText =
-                        "width: 22px; height: 22px; object-fit: contain;";
+                    icone.style.cssText = "width:22px;height:22px;object-fit:contain";
                     icone.addEventListener("error", () => icone.remove());
                     evoluir.appendChild(icone);
 
-                    const descricao = `Evoluir para ${regra.destino} usando ${regra.item}`;
-                    evoluir.title = descricao;
-                    if (jaNoTime) {
-                        evoluir.title += ". A forma evoluída já está no time.";
-                    } else if (semItem) {
-                        evoluir.title += ". Compre o item na loja.";
-                    }
+                    evoluir.title = `Evoluir para ${regra.destino} usando ${regra.item}`;
+                    if (jaNoTime) evoluir.title += " · Forma evoluida ja no time";
+                    else if (semItem) evoluir.title += " · Compre o item na loja";
                     evoluir.setAttribute("aria-label", evoluir.title);
 
                     evoluir.addEventListener("click", async () => {
-                        const mensagem =
-                            `Usar 1 ${regra.item} para evoluir ${pokemon.nome} para ${regra.destino}?`;
+                        const mensagem = `Usar 1 ${regra.item} para evoluir ${pokemon.nome} para ${regra.destino}?`;
                         if (!confirm(mensagem)) return;
 
                         evoluir.disabled = true;
