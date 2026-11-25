@@ -163,3 +163,150 @@ WHERE nome IN (
     'bug', 'ghost', 'steel', 'fire', 'water', 'grass',
     'electric', 'psychic', 'ice', 'dragon', 'fairy'
 );
+INSERT INTO item
+    (nome, descricao, imagem_item, preco, tipo, quantidade, disponivel)
+SELECT
+    novos.nome,
+    CONCAT('Item de evolução do tipo ', novos.tipo_pokemon, '.'),
+    CONCAT(
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/',
+        novos.sprite,
+        '.png'
+    ),
+    3000.00,
+    'evolucao',
+    NULL,
+    1
+FROM (
+    SELECT 'King''s Rock' AS nome, 'Normal' AS tipo_pokemon, 'kings-rock' AS sprite
+    UNION ALL SELECT 'Ice Stone', 'Gelo', 'ice-stone'
+    UNION ALL SELECT 'Punching Glove', 'Lutador', 'punching-glove'
+    UNION ALL SELECT 'Poison Barb', 'Venenoso', 'poison-barb'
+    UNION ALL SELECT 'Protector', 'Terrestre', 'protector'
+    UNION ALL SELECT 'Pretty Feather', 'Voador', 'pretty-wing'
+    UNION ALL SELECT 'Twisted Spoon', 'Psíquico', 'twisted-spoon'
+    UNION ALL SELECT 'Silver Powder', 'Inseto', 'silver-powder'
+    UNION ALL SELECT 'Hard Stone', 'Pedra', 'hard-stone'
+    UNION ALL SELECT 'Dusk Stone', 'Fantasma', 'dusk-stone'
+    UNION ALL SELECT 'Dragon Scale', 'Dragão', 'dragon-scale'
+    UNION ALL SELECT 'Metal Coat', 'Aço', 'metal-coat'
+) AS novos
+ON DUPLICATE KEY UPDATE
+    descricao = VALUES(descricao),
+    imagem_item = VALUES(imagem_item),
+    preco = VALUES(preco),
+    tipo = VALUES(tipo),
+    disponivel = VALUES(disponivel);
+-- Execute depois de importar os Pokémon e cadastrar os itens da loja.
+INSERT INTO evolucao (id_pokemon, id_pokemon_evolucao, id_item)
+SELECT origem.id_pokemon, destino.id_pokemon, i.id_item
+FROM (
+    SELECT 'bulbasaur' AS origem, 'ivysaur' AS destino, 'Leaf Stone' AS item
+    UNION ALL SELECT 'ivysaur', 'venusaur', 'Leaf Stone'
+    UNION ALL SELECT 'oddish', 'gloom', 'Leaf Stone'
+    UNION ALL SELECT 'gloom', 'vileplume', 'Leaf Stone'
+    UNION ALL SELECT 'bellsprout', 'weepinbell', 'Leaf Stone'
+    UNION ALL SELECT 'weepinbell', 'victreebel', 'Leaf Stone'
+    UNION ALL SELECT 'exeggcute', 'exeggutor', 'Leaf Stone'
+    UNION ALL SELECT 'charmander', 'charmeleon', 'Fire Stone'
+    UNION ALL SELECT 'charmeleon', 'charizard', 'Fire Stone'
+    UNION ALL SELECT 'vulpix', 'ninetales', 'Fire Stone'
+    UNION ALL SELECT 'growlithe', 'arcanine', 'Fire Stone'
+    UNION ALL SELECT 'ponyta', 'rapidash', 'Fire Stone'
+    UNION ALL SELECT 'eevee', 'flareon', 'Fire Stone'
+    UNION ALL SELECT 'squirtle', 'wartortle', 'Water Stone'
+    UNION ALL SELECT 'wartortle', 'blastoise', 'Water Stone'
+    UNION ALL SELECT 'psyduck', 'golduck', 'Water Stone'
+    UNION ALL SELECT 'poliwag', 'poliwhirl', 'Water Stone'
+    UNION ALL SELECT 'poliwhirl', 'poliwrath', 'Water Stone'
+    UNION ALL SELECT 'tentacool', 'tentacruel', 'Water Stone'
+    UNION ALL SELECT 'slowpoke', 'slowbro', 'Water Stone'
+    UNION ALL SELECT 'seel', 'dewgong', 'Water Stone'
+    UNION ALL SELECT 'shellder', 'cloyster', 'Water Stone'
+    UNION ALL SELECT 'krabby', 'kingler', 'Water Stone'
+    UNION ALL SELECT 'horsea', 'seadra', 'Water Stone'
+    UNION ALL SELECT 'goldeen', 'seaking', 'Water Stone'
+    UNION ALL SELECT 'staryu', 'starmie', 'Water Stone'
+    UNION ALL SELECT 'magikarp', 'gyarados', 'Water Stone'
+    UNION ALL SELECT 'omanyte', 'omastar', 'Water Stone'
+    UNION ALL SELECT 'kabuto', 'kabutops', 'Water Stone'
+    UNION ALL SELECT 'eevee', 'vaporeon', 'Water Stone'
+    UNION ALL SELECT 'pikachu', 'raichu', 'Thunder Stone'
+    UNION ALL SELECT 'voltorb', 'electrode', 'Thunder Stone'
+    UNION ALL SELECT 'eevee', 'jolteon', 'Thunder Stone'
+    UNION ALL SELECT 'nidorino', 'nidoking', 'Moon Stone'
+    UNION ALL SELECT 'nidorina', 'nidoqueen', 'Moon Stone'
+    UNION ALL SELECT 'clefairy', 'clefable', 'Moon Stone'
+    UNION ALL SELECT 'jigglypuff', 'wigglytuff', 'Moon Stone'
+    UNION ALL SELECT 'caterpie', 'metapod', 'Silver Powder'
+    UNION ALL SELECT 'metapod', 'butterfree', 'Silver Powder'
+    UNION ALL SELECT 'weedle', 'kakuna', 'Silver Powder'
+    UNION ALL SELECT 'kakuna', 'beedrill', 'Silver Powder'
+    UNION ALL SELECT 'paras', 'parasect', 'Silver Powder'
+    UNION ALL SELECT 'venonat', 'venomoth', 'Silver Powder'
+    UNION ALL SELECT 'pidgey', 'pidgeotto', 'Pretty Feather'
+    UNION ALL SELECT 'pidgeotto', 'pidgeot', 'Pretty Feather'
+    UNION ALL SELECT 'spearow', 'fearow', 'Pretty Feather'
+    UNION ALL SELECT 'doduo', 'dodrio', 'Pretty Feather'
+    UNION ALL SELECT 'ekans', 'arbok', 'Poison Barb'
+    UNION ALL SELECT 'nidoran-f', 'nidorina', 'Poison Barb'
+    UNION ALL SELECT 'nidoran-m', 'nidorino', 'Poison Barb'
+    UNION ALL SELECT 'zubat', 'golbat', 'Poison Barb'
+    UNION ALL SELECT 'grimer', 'muk', 'Poison Barb'
+    UNION ALL SELECT 'koffing', 'weezing', 'Poison Barb'
+    UNION ALL SELECT 'sandshrew', 'sandslash', 'Protector'
+    UNION ALL SELECT 'diglett', 'dugtrio', 'Protector'
+    UNION ALL SELECT 'cubone', 'marowak', 'Protector'
+    UNION ALL SELECT 'rhyhorn', 'rhydon', 'Protector'
+    UNION ALL SELECT 'mankey', 'primeape', 'Punching Glove'
+    UNION ALL SELECT 'machop', 'machoke', 'Punching Glove'
+    UNION ALL SELECT 'machoke', 'machamp', 'Punching Glove'
+    UNION ALL SELECT 'abra', 'kadabra', 'Twisted Spoon'
+    UNION ALL SELECT 'kadabra', 'alakazam', 'Twisted Spoon'
+    UNION ALL SELECT 'drowzee', 'hypno', 'Twisted Spoon'
+    UNION ALL SELECT 'geodude', 'graveler', 'Hard Stone'
+    UNION ALL SELECT 'graveler', 'golem', 'Hard Stone'
+    UNION ALL SELECT 'gastly', 'haunter', 'Dusk Stone'
+    UNION ALL SELECT 'haunter', 'gengar', 'Dusk Stone'
+    UNION ALL SELECT 'dratini', 'dragonair', 'Dragon Scale'
+    UNION ALL SELECT 'dragonair', 'dragonite', 'Dragon Scale'
+    UNION ALL SELECT 'magnemite', 'magneton', 'Metal Coat'
+    UNION ALL SELECT 'seel', 'dewgong', 'Ice Stone'
+    UNION ALL SELECT 'shellder', 'cloyster', 'Ice Stone'
+    UNION ALL SELECT 'rattata', 'raticate', 'King''s Rock'
+    UNION ALL SELECT 'meowth', 'persian', 'King''s Rock'
+) AS regra
+JOIN pokemon origem ON origem.nome = regra.origem
+JOIN pokemon destino ON destino.nome = regra.destino
+JOIN item i ON i.nome = regra.item AND i.tipo = 'evolucao'
+WHERE NOT EXISTS (
+    SELECT 1 FROM evolucao e
+    WHERE e.id_pokemon = origem.id_pokemon AND e.id_item = i.id_item
+);
+
+SELECT ROW_COUNT() AS novas_regras;
+CREATE TABLE IF NOT EXISTS pokemon_desbloqueado (
+    id_usuario INT NOT NULL,
+    id_pokemon INT NOT NULL,
+    PRIMARY KEY (id_usuario, id_pokemon),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_pokemon) REFERENCES pokemon(id_pokemon)
+);
+
+CREATE TABLE IF NOT EXISTS escolha_inicial_pokemon (
+    id_usuario INT PRIMARY KEY,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+-- Preserva a equipe ativa de quem ja jogava.
+INSERT IGNORE INTO pokemon_desbloqueado (id_usuario, id_pokemon)
+SELECT t.id_usuario, m.id_pokemon
+FROM time_pokemon t JOIN time_membro m ON m.id_time = t.id_time
+WHERE t.ativo = 1;
+
+INSERT IGNORE INTO escolha_inicial_pokemon (id_usuario)
+SELECT t.id_usuario
+FROM time_pokemon t JOIN time_membro m ON m.id_time = t.id_time
+WHERE t.ativo = 1
+GROUP BY t.id_usuario, t.id_time
+HAVING COUNT(*) >= 3;
