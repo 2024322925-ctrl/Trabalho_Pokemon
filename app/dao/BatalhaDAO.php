@@ -669,7 +669,7 @@ public function finalizarBatalha(
 
         // Atualiza o saldo da carteira
         $sqlAtualizarCarteira = "UPDATE carteira
-        SET saldo = LEAST(saldo + :recompensa, 99999999.99)
+        SET saldo = saldo + :recompensa
          WHERE id_usuario = :id_usuario";
 
         $stmtCarteira = $this->conexao->prepare($sqlAtualizarCarteira);

@@ -87,15 +87,15 @@ VALUES
  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/moon-stone.png',
  3000.00, 'evolucao', NULL, 1);
 
-INSERT INTO fase (nome, tipo, recompensa_vitoria, xp_recompensa) VALUES
-('Ginásio de Pewter', 'rock', 100, 50),
-('Ginásio de Cerulean', 'water', 140, 80),
-('Ginásio de Vermilion', 'electric', 196, 120),
-('Ginásio de Celadon', 'grass', 274, 180),
-('Ginásio de Fuchsia', 'poison', 384, 260),
-('Ginásio da Ilha Cinnabar', 'fire', 537, 360),
-('Ginásio de Saffron', 'psychic', 751, 500),
-('Ginásio de Viridian', 'ground', 1051, 700);
+INSERT INTO fase (nome, tipo) VALUES
+('Ginásio de Pewter', 'rock'),
+('Ginásio de Cerulean', 'water'),
+('Ginásio de Vermilion', 'electric'),
+('Ginásio de Celadon', 'grass'),
+('Ginásio de Fuchsia', 'poison'),
+('Ginásio da Ilha Cinnabar', 'fire'),
+('Ginásio de Saffron', 'psychic'),
+('Ginásio de Viridian', 'ground');
 
 INSERT INTO fase_pokemon (id_fase, id_pokemon, nivel, posicao) VALUES
 (1, 74, 3, 1),
@@ -310,6 +310,8 @@ FROM time_pokemon t JOIN time_membro m ON m.id_time = t.id_time
 WHERE t.ativo = 1
 GROUP BY t.id_usuario, t.id_time
 HAVING COUNT(*) >= 3;
+
+
 UPDATE fase SET recompensa_vitoria = 100, xp_recompensa = 50 WHERE id_fase = 1;
 UPDATE fase SET recompensa_vitoria = 140, xp_recompensa = 80 WHERE id_fase = 2;
 UPDATE fase SET recompensa_vitoria = 196, xp_recompensa = 120 WHERE id_fase = 3;
