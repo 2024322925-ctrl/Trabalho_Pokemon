@@ -310,11 +310,3 @@ FROM time_pokemon t JOIN time_membro m ON m.id_time = t.id_time
 WHERE t.ativo = 1
 GROUP BY t.id_usuario, t.id_time
 HAVING COUNT(*) >= 3;
-UPDATE fase SET recompensa_vitoria = 100, xp_recompensa = 50 WHERE id_fase = 1;
-UPDATE fase SET recompensa_vitoria = 140, xp_recompensa = 80 WHERE id_fase = 2;
-UPDATE fase SET recompensa_vitoria = 196, xp_recompensa = 120 WHERE id_fase = 3;
-UPDATE fase SET recompensa_vitoria = 274, xp_recompensa = 180 WHERE id_fase = 4;
-UPDATE fase SET recompensa_vitoria = 384, xp_recompensa = 260 WHERE id_fase = 5;
-UPDATE fase SET recompensa_vitoria = 537, xp_recompensa = 360 WHERE id_fase = 6;
-UPDATE fase SET recompensa_vitoria = 751, xp_recompensa = 500 WHERE id_fase = 7;
-UPDATE fase SET recompensa_vitoria = 1051, xp_recompensa = 700 WHERE id_fase = 8;

@@ -756,6 +756,32 @@ public function finalizarBatalha(
             return false;
         }
 
+        // Registra a conclusão e libera a próxima fase somente na vitória.
+        if ($resultado === "vitoria") {
+            $stmtConclusao = $this->conexao->prepare(
+                "INSERT INTO usuario_fase_concluida (id_usuario, id_fase)
+                 VALUES (:usuario, :fase)
+                 ON DUPLICATE KEY UPDATE id_fase = id_fase"
+            );
+            $stmtConclusao->execute([
+                ':usuario' => $idUsuario,
+                ':fase' => $idFase
+            ]);
+
+            $stmtProgresso = $this->conexao->prepare(
+                "INSERT INTO progresso_usuario (id_usuario, maior_fase_desbloqueada)
+                 VALUES (:usuario, :proxima)
+                 ON DUPLICATE KEY UPDATE maior_fase_desbloqueada =
+                    GREATEST(maior_fase_desbloqueada, :proxima_atualizacao)"
+            );
+            $proximaFase = min(8, $idFase + 1);
+            $stmtProgresso->execute([
+                ':usuario' => $idUsuario,
+                ':proxima' => $proximaFase,
+                ':proxima_atualizacao' => $proximaFase
+            ]);
+        }
+
         // Confirma todas as operações
         $this->conexao->commit();
 

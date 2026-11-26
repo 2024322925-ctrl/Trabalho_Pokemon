@@ -30,11 +30,12 @@ class FaseDAO
                     ON pu.id_usuario = :id_usuario
                 LEFT JOIN usuario_fase_concluida ufc
                     ON ufc.id_fase = f.id_fase
-                    AND ufc.id_usuario = :id_usuario
+                    AND ufc.id_usuario = :id_usuario_conclusao
                 ORDER BY f.id_fase";
 
         $stmt = $this->conexao->prepare($sql);
         $stmt->bindValue(":id_usuario", $idUsuario, PDO::PARAM_INT);
+        $stmt->bindValue(":id_usuario_conclusao", $idUsuario, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
