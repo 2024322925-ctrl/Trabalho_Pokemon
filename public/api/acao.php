@@ -1,3 +1,4 @@
+
 <?php
 
 session_start();
@@ -105,8 +106,7 @@ $usarItem = $idItem !== null
     && $idItem !== false
     && $idItem > 0;
 
-// Se não for troca, precisa ser um ataque válido
-if (!$trocaVoluntaria && (!$idAtaque || $idAtaque <= 0)) {
+// Se não for troca nem uso de item, precisa informar um ataque válido
 if (
     !$trocaVoluntaria &&
     !$usarItem &&
@@ -114,7 +114,6 @@ if (
 ) {
     echo json_encode([
         "sucesso" => false,
-        "mensagem" => "Ataque ou Pokémon inválido."
         "mensagem" => "Ação inválida."
     ], JSON_UNESCAPED_UNICODE);
     exit;
@@ -458,7 +457,6 @@ if ($usarItem) {
 // Valida o ataque somente quando a ação não for uma troca ou uso de item
 $ataqueJogador = null;
 
-if (!$trocaVoluntaria) {
 if (!$trocaVoluntaria && !$usarItem) {
 
     $ataqueJogador = $batalhaController->validarAtaque(
@@ -514,8 +512,7 @@ $jaAgiram = [
     "adversario" => false
 ];
 
-// Na troca voluntária, o jogador já utilizou sua ação
-if ($trocaVoluntaria) {
+// A troca voluntária ou o uso de item consome a ação do jogador
 if ($trocaVoluntaria || $usarItem) {
     $jaAgiram["jogador"] = true;
 }
@@ -729,10 +726,9 @@ $executarAtaqueDoTurno = function (
 };
 
 // Executa o turno conforme a ação escolhida
-if ($trocaVoluntaria) {
 if ($trocaVoluntaria || $usarItem) {
 
-    // A troca consome a ação do jogador.
+    // A troca ou o uso de item consome a ação do jogador.
     // Portanto, somente o adversário executa seu ataque.
     $executarAtaqueDoTurno(
         $pokemonAtacante,
@@ -908,6 +904,13 @@ $pokemonAtacante["porcentagem_hp"] = $hpMaximoPokemon > 0
 
 // Atualiza o Pokémon do jogador na equipe
 $pokemonsSelecionados[$indiceAtacante] = $pokemonAtacante;
+
+// Atualiza o destaque visual do Pokémon ativo na equipe
+foreach ($pokemonsSelecionados as &$pokemonSelecionado) {
+    $pokemonSelecionado["pokemon_ativo"] =
+        (int) $pokemonSelecionado["id_pokemon"] === (int) $idPokemonAtivo;
+}
+unset($pokemonSelecionado);
 
 // Controla se o jogador precisa escolher outro Pokémon
 $aguardandoTroca = false;
