@@ -1,13 +1,19 @@
 
 const menuPrincipal = document.getElementById("menu-principal");
 const menuAtaques = document.getElementById("menu-ataques");
+const menuItens = document.getElementById("menu-itens");
 
 const botaoTrocar = document.getElementById("botao-trocar");
 
 const botaoAtacar = document.getElementById("botao-atacar");
 const botaoVoltarAtaques = document.getElementById("botao-voltar-ataques");
 
+const botaoItens = document.getElementById("botao-itens");
+const botaoVoltarItens = document.getElementById("botao-voltar-itens");
+
 const botoesAtaque = document.querySelectorAll(".botao-ataque");
+
+const botoesItem = document.querySelectorAll(".botao-item");
 
 const modalTroca = document.getElementById("modal-troca");
 
@@ -149,6 +155,7 @@ function mostrarResultado(dados) {
     // Esconde os menus e a janela de troca
     menuPrincipal.hidden = true;
     menuAtaques.hidden = true;
+    menuItens.hidden = true;
     modalTroca.hidden = true;
 
     // Define o título e a mensagem
@@ -292,6 +299,7 @@ function abrirJanelaTroca(obrigatoria = true) {
 
     menuPrincipal.hidden = true;
     menuAtaques.hidden = true;
+    menuItens.hidden = true;
 
     botoesAtaque.forEach(function (botao) {
         botao.disabled = true;
@@ -354,6 +362,28 @@ botaoVoltarAtaques.addEventListener("click", function () {
     }
 
     menuAtaques.hidden = true;
+    menuPrincipal.hidden = false;
+});
+
+// Abre o menu de itens
+botaoItens.addEventListener("click", function () {
+
+    if (trocaPendente || batalhaEncerrada) {
+        return;
+    }
+
+    menuPrincipal.hidden = true;
+    menuItens.hidden = false;
+});
+
+// Volta ao menu principal
+botaoVoltarItens.addEventListener("click", function () {
+
+    if (trocaPendente || batalhaEncerrada) {
+        return;
+    }
+
+    menuItens.hidden = true;
     menuPrincipal.hidden = false;
 });
 

@@ -13,8 +13,10 @@ if (!isset($_SESSION["preparacao_batalha"])) {
 }
 
 require_once __DIR__ . "/../../../controllers/BatalhaController.php";
+require_once __DIR__ . "/../../../controllers/ItemController.php";
 
 $batalhaController = new BatalhaController();
+$itemController = new ItemController();
 
 // Inicializa a batalha somente na primeira entrada
 if (empty($_SESSION["preparacao_batalha"]["iniciada"])) {
@@ -41,6 +43,9 @@ if (empty($_SESSION["preparacao_batalha"]["iniciada"])) {
 $idUsuario = (int) $_SESSION["id_usuario"];
 $idTime = (int) $_SESSION["preparacao_batalha"]["id_time"];
 $idFase = (int) $_SESSION["preparacao_batalha"]["id_fase"];
+
+// Busca os itens disponíveis para uso durante a batalha
+$itensBatalha = $itemController->listarItensDeBatalha($idUsuario);
 
 // Verifica se já existe uma batalha preparada na sessão
 $batalhaExistente = isset($_SESSION["batalha"])
@@ -396,6 +401,62 @@ $posicoesPokemon = [
                     <button type="button" id="botao-voltar-ataques">
                         VOLTAR
                     </button>
+                    
+                    <!-- MENU DE ITENS -->
+                    <div class="menu-itens" id="menu-itens" hidden>
+
+                        <?php if (!empty($itensBatalha)): ?>
+
+                            <?php foreach ($itensBatalha as $item): ?>
+
+                                <button
+                                    type="button"
+                                    class="botao-item"
+                                    data-id-item="<?= (int) $item["id_item"] ?>"
+                                >
+
+                                    <?php if (!empty($item["imagem_item"])): ?>
+                                        <img
+                                            src="<?= htmlspecialchars(
+                                                $item["imagem_item"],
+                                                ENT_QUOTES,
+                                                "UTF-8"
+                                            ) ?>"
+                                            alt="<?= htmlspecialchars(
+                                                $item["nome"],
+                                                ENT_QUOTES,
+                                                "UTF-8"
+                                            ) ?>"
+                                        >
+                                    <?php endif; ?>
+
+                                    <span>
+                                        <?= htmlspecialchars(
+                                            $item["nome"],
+                                            ENT_QUOTES,
+                                            "UTF-8"
+                                        ) ?>
+                                    </span>
+
+                                    <span>
+                                        x<?= (int) $item["quantidade"] ?>
+                                    </span>
+
+                                </button>
+
+                            <?php endforeach; ?>
+
+                        <?php else: ?>
+
+                            <p>Você não possui itens de cura.</p>
+
+                        <?php endif; ?>
+
+                        <button type="button" id="botao-voltar-itens">
+                            VOLTAR
+                        </button>
+
+                    </div>
 
                 </div>
 

@@ -36,6 +36,10 @@ require_once __DIR__ . "/../../app/controllers/BatalhaController.php";
 
 $batalhaController = new BatalhaController();
 
+require_once __DIR__ . "/../../app/controllers/ItemController.php";
+
+$itemController = new ItemController();
+
 // Verifica se o jogador solicitou fugir da batalha
 if (isset($_POST["fugir"]) && $_POST["fugir"] === "1") {
 
@@ -91,23 +95,52 @@ if (isset($_POST["fugir"]) && $_POST["fugir"] === "1") {
 // Recupera os dados enviados pelo jogador
 $idAtaque = filter_input(INPUT_POST, "id_ataque", FILTER_VALIDATE_INT);
 $idPokemonTroca = filter_input(INPUT_POST, "id_pokemon", FILTER_VALIDATE_INT);
+$idItem = filter_input(INPUT_POST, "id_item", FILTER_VALIDATE_INT);
 
 // Identifica se a ação é uma troca voluntária
 $trocaVoluntaria = $idPokemonTroca !== null
     && $idPokemonTroca !== false
     && $idPokemonTroca > 0;
 
+$usarItem = $idItem !== null
+    && $idItem !== false
+    && $idItem > 0;
+
 // Se não for troca, precisa ser um ataque válido
-if (!$trocaVoluntaria && (!$idAtaque || $idAtaque <= 0)) {
+if (
+    !$trocaVoluntaria &&
+    !$usarItem &&
+    (!$idAtaque || $idAtaque <= 0)
+) {
     echo json_encode([
         "sucesso" => false,
-        "mensagem" => "Ataque ou Pokémon inválido."
+        "mensagem" => "Ação inválida."
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 // Recupera os dados da batalha
 $batalha = $_SESSION["batalha"];
+
+// Busca e valida o item escolhido pelo jogador
+$itemUtilizado = null;
+
+if ($usarItem) {
+
+    $itemUtilizado = $itemController->buscarItemDeBatalha(
+        (int) $_SESSION["id_usuario"],
+        (int) $idItem
+    );
+
+    // Verifica se o item pertence ao inventário e pode ser usado
+    if (!$itemUtilizado) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Item indisponível no inventário."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -346,10 +379,84 @@ if ($hpAtacante <= 0 || $hpAdversario <= 0) {
     exit;
 }
 
-// Valida o ataque somente quando a ação não for uma troca
+// Aplica o efeito do item escolhido
+$mensagemItem = null;
+
+if ($usarItem) {
+
+    $hpMaximo = (int) $pokemonAtacante["hp_maximo"];
+    $statusAtual = $pokemonAtacante["status_atual"] ?? null;
+
+    switch ((int) $idItem) {
+
+        case 1: // Potion
+            $novoHP = min($hpAtacante + 20, $hpMaximo);
+            break;
+
+        case 2: // Super Potion
+            $novoHP = min($hpAtacante + 50, $hpMaximo);
+            break;
+
+        case 3: // Hyper Potion
+            $novoHP = min($hpAtacante + 200, $hpMaximo);
+            break;
+
+        case 4: // Max Potion
+        case 5: // Full Restore
+            $novoHP = $hpMaximo;
+            break;
+
+        default:
+            $novoHP = $hpAtacante;
+            break;
+    }
+
+    // Verifica se o item realmente produzirá algum efeito
+    $curarStatus = (int) $idItem === 5 && $statusAtual !== null;
+
+    if ($novoHP === $hpAtacante && !$curarStatus) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Esse Pokémon não precisa desse item."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Consome uma unidade do inventário
+    $consumiuItem = $itemController->consumirItem(
+        (int) $_SESSION["id_usuario"],
+        (int) $idItem
+    );
+
+    if (!$consumiuItem) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Não foi possível utilizar o item."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Atualiza o HP do Pokémon
+    $pokemonAtacante["hp_atual"] = $novoHP;
+    $pokemonAtacante["hp_atual_exibicao"] = $novoHP;
+
+    $hpAtacante = $novoHP;
+
+    // Full Restore também remove o status negativo
+    if ((int) $idItem === 5) {
+        $pokemonAtacante["status_atual"] = null;
+        unset($pokemonAtacante["turnos_sono"]);
+    }
+
+    $mensagemItem = $pokemonAtacante["nome"]
+        . " recuperou HP usando "
+        . $itemUtilizado["nome"] . "!";
+}
+
+// Valida o ataque somente quando a ação não for uma troca ou uso de item
 $ataqueJogador = null;
 
-if (!$trocaVoluntaria) {
+if (!$trocaVoluntaria && !$usarItem) {
 
     $ataqueJogador = $batalhaController->validarAtaque(
         $idPokemonAtivo,
@@ -405,7 +512,7 @@ $jaAgiram = [
 ];
 
 // Na troca voluntária, o jogador já utilizou sua ação
-if ($trocaVoluntaria) {
+if ($trocaVoluntaria || $usarItem) {
     $jaAgiram["jogador"] = true;
 }
 
@@ -487,6 +594,18 @@ $registrarEventos = function (
         ];
     }
 };
+
+// Registra a utilização do item como um evento da batalha
+if ($mensagemItem !== null) {
+
+    $registrarEventos(
+        ["mensagem" => $mensagemItem],
+        $pokemonAtacante,
+        $pokemonAdversario
+    );
+
+    $mensagens[] = $mensagemItem;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -606,7 +725,7 @@ $executarAtaqueDoTurno = function (
 };
 
 // Executa o turno conforme a ação escolhida
-if ($trocaVoluntaria) {
+if ($trocaVoluntaria || $usarItem) {
 
     // A troca consome a ação do jogador.
     // Portanto, somente o adversário executa seu ataque.
@@ -1089,6 +1208,16 @@ echo json_encode([
     // Dados atualizados da batalha
     "pokemon_adversario" => $pokemonAdversario,
     "pokemons_selecionados" => $pokemonsSelecionados,
+
+    // Dados do item utilizado
+    "item_utilizado" => $usarItem ? [
+        "id_item" => (int) $idItem,
+        "nome" => $itemUtilizado["nome"],
+        "quantidade_restante" => max(
+            0,
+            (int) $itemUtilizado["quantidade"] - 1
+        )
+    ] : null,
 
     // Acontecimentos individuais do turno
     "eventos" => $eventos,
