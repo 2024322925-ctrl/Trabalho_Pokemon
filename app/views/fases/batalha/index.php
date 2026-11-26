@@ -1,3 +1,4 @@
+
 <?php
 
 session_start();
@@ -401,70 +402,70 @@ $posicoesPokemon = [
                     <button type="button" id="botao-voltar-ataques">
                         VOLTAR
                     </button>
-                    
-                    <!-- MENU DE ITENS -->
-                    <div class="menu-itens" id="menu-itens" hidden>
 
-                        <?php if (!empty($itensBatalha)): ?>
+                </div>
 
-                            <?php foreach ($itensBatalha as $item): ?>
+                <!-- MENU DE ITENS -->
+                <div class="menu-itens" id="menu-itens" hidden>
 
-                                <button
-                                    type="button"
-                                    class="botao-item"
-                                    data-id-item="<?= (int) $item["id_item"] ?>"
-                                >
+                    <?php if (!empty($itensBatalha)): ?>
 
-                                    <?php if (!empty($item["imagem_item"])): ?>
-                                        <img
-                                            src="<?= htmlspecialchars(
-                                                $item["imagem_item"],
-                                                ENT_QUOTES,
-                                                "UTF-8"
-                                            ) ?>"
-                                            alt="<?= htmlspecialchars(
-                                                $item["nome"],
-                                                ENT_QUOTES,
-                                                "UTF-8"
-                                            ) ?>"
-                                        >
-                                    <?php endif; ?>
+                        <?php foreach ($itensBatalha as $item): ?>
 
-                                    <span>
-                                        <?= htmlspecialchars(
+                            <button
+                                type="button"
+                                class="botao-item"
+                                data-id-item="<?= (int) $item["id_item"] ?>"
+                            >
+
+                                <?php if (!empty($item["imagem_item"])): ?>
+                                    <img
+                                        src="<?= htmlspecialchars(
+                                            $item["imagem_item"],
+                                            ENT_QUOTES,
+                                            "UTF-8"
+                                        ) ?>"
+                                        alt="<?= htmlspecialchars(
                                             $item["nome"],
                                             ENT_QUOTES,
                                             "UTF-8"
-                                        ) ?>
-                                    </span>
+                                        ) ?>"
+                                    >
+                                <?php endif; ?>
 
-                                    <span>
-                                        x<?= (int) $item["quantidade"] ?>
-                                    </span>
+                                <span>
+                                    <?= htmlspecialchars(
+                                        $item["nome"],
+                                        ENT_QUOTES,
+                                        "UTF-8"
+                                    ) ?>
+                                </span>
 
-                                </button>
+                                <span>
+                                    x<?= (int) $item["quantidade"] ?>
+                                </span>
 
-                            <?php endforeach; ?>
+                            </button>
 
-                        <?php else: ?>
+                        <?php endforeach; ?>
 
-                            <p>Você não possui itens de cura.</p>
+                    <?php else: ?>
 
-                        <?php endif; ?>
+                        <p>Você não possui itens de cura.</p>
 
-                        <button type="button" id="botao-voltar-itens">
-                            VOLTAR
-                        </button>
+                    <?php endif; ?>
 
-                    </div>
+                    <button type="button" id="botao-voltar-itens">
+                        VOLTAR
+                    </button>
 
                 </div>
 
             </div>
 
         </section>
-        
-                <!-- JANELA DE TROCA DE POKÉMON -->
+
+        <!-- JANELA DE TROCA DE POKÉMON -->
         <div
             class="modal-troca"
             id="modal-troca"
@@ -550,7 +551,8 @@ $posicoesPokemon = [
             </div>
 
         </div>
-                   <!-- JANELA DE RESULTADO DA BATALHA -->
+
+        <!-- JANELA DE RESULTADO DA BATALHA -->
         <div class="modal-resultado" id="modal-resultado" hidden>
 
             <div class="conteudo-modal-resultado">
@@ -578,7 +580,8 @@ $posicoesPokemon = [
 
             </div>
 
-        </div>             
+        </div>
+
     </main>
 
     <script src="../../../../public/js/batalha.js"></script>

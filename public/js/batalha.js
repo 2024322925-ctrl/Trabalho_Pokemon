@@ -1,6 +1,8 @@
 
 const menuPrincipal = document.getElementById("menu-principal");
 const menuAtaques = document.getElementById("menu-ataques");
+
+
 const menuItens = document.getElementById("menu-itens");
 
 const botaoTrocar = document.getElementById("botao-trocar");
