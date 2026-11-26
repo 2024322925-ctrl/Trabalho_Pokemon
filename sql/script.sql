@@ -1,177 +1,193 @@
-create database if not exists jogo_pokemon;
+CREATE DATABASE IF NOT EXISTS jogo_pokemon
+DEFAULT CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE jogo_pokemon;
 
 
-use jogo_pokemon;
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    sobrenome VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    perfil VARCHAR(30) NOT NULL DEFAULT 'jogador'
+) ENGINE=InnoDB;
 
 
-create table usuario(
-    id_usuario int AUTO_INCREMENT primary key,
-    nome varchar(50) not null,
-    sobrenome varchar(50) not null,
-    email varchar(100) not null unique,
-    senha varchar(255) not null,
-    perfil varchar(30) not null default 'jogador'
-);
-
-
-create table tipo(
-    id_tipo int AUTO_INCREMENT primary key,
-    nome varchar(30) not null unique,
+CREATE TABLE tipo (
+    id_tipo INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(30) NOT NULL UNIQUE,
     imagem VARCHAR(255) DEFAULT NULL
-);
+) ENGINE=InnoDB;
 
 
-create table pokemon(
-    id_pokemon int AUTO_INCREMENT primary key,
-    nome varchar(50) not null,
-    hp int not null,
-    hp_atual int not null,
-    velocidade int not null,
-    ataque int not null,
-    defesa int not null,
-    ataque_especial int not null,
-    defesa_especial int not null, 
-    status_atual varchar(30) default null,
-    ativo boolean default true,
+CREATE TABLE pokemon (
+    id_pokemon INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE,
+    hp INT NOT NULL,
+    hp_atual INT NOT NULL,
+    velocidade INT NOT NULL,
+    ataque INT NOT NULL,
+    defesa INT NOT NULL,
+    ataque_especial INT NOT NULL,
+    defesa_especial INT NOT NULL,
+    status_atual VARCHAR(30) DEFAULT NULL,
+    ativo BOOLEAN DEFAULT TRUE,
     imagem_costas VARCHAR(255) DEFAULT NULL,
     imagem VARCHAR(255) DEFAULT NULL
-);
+) ENGINE=InnoDB;
 
 
-create table item(
-    id_item int AUTO_INCREMENT primary key,
-    nome varchar(50) not null unique,
-    descricao varchar(255),
-    imagem_item VARCHAR(500) NULL,
-    preco decimal(10,2) not null,
-    tipo varchar(30) not null,
-    quantidade int default null,
-    disponivel boolean default true
-);
+CREATE TABLE item (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE,
+    descricao VARCHAR(255),
+    imagem_item VARCHAR(500) DEFAULT NULL,
+    preco DECIMAL(10,2) NOT NULL,
+    tipo VARCHAR(30) NOT NULL,
+    quantidade INT DEFAULT NULL,
+    disponivel BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB;
 
 
-create table pokemon_tipo(
-    id_pokemon int not null,
-    id_tipo int not null,
+CREATE TABLE pokemon_tipo (
+    id_pokemon INT NOT NULL,
+    id_tipo INT NOT NULL,
+
+    PRIMARY KEY (id_pokemon, id_tipo),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon),
+
+    FOREIGN KEY (id_tipo)
+        REFERENCES tipo(id_tipo)
+) ENGINE=InnoDB;
 
 
-    primary key(id_pokemon,id_tipo),
+CREATE TABLE time_pokemon (
+    id_time INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    nome VARCHAR(50) NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB;
 
 
-    foreign key(id_pokemon) references pokemon(id_pokemon),
-    foreign key(id_tipo) references tipo(id_tipo)
-);
+CREATE TABLE time_membro (
+    id_time INT NOT NULL,
+    id_pokemon INT NOT NULL,
+    posicao INT NOT NULL,
+
+    PRIMARY KEY (id_time, id_pokemon),
+    UNIQUE (id_time, posicao),
+
+    FOREIGN KEY (id_time)
+        REFERENCES time_pokemon(id_time),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon)
+) ENGINE=InnoDB;
 
 
-create table time_pokemon(
-    id_time int AUTO_INCREMENT primary key,
-    id_usuario int not null,
-    nome varchar(50) not null,
-    ativo boolean default true,
+CREATE TABLE carteira (
+    id_carteira INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL UNIQUE,
+    saldo DECIMAL(10,2) NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB;
 
 
-    foreign key(id_usuario) references usuario(id_usuario)
-);
+CREATE TABLE inventario (
+    id_usuario INT NOT NULL,
+    id_item INT NOT NULL,
+    quantidade INT NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (id_usuario, id_item),
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+
+    FOREIGN KEY (id_item)
+        REFERENCES item(id_item)
+) ENGINE=InnoDB;
 
 
-create table time_membro(
-    id_time int not null,
-    id_pokemon int not null,
-    posicao int not null,
+CREATE TABLE compra (
+    id_compra INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    data_compra DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    valor_total DECIMAL(10,2) NOT NULL,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB;
 
 
-    primary key(id_time,id_pokemon),
+CREATE TABLE compra_item (
+    id_compra INT NOT NULL,
+    id_item INT NOT NULL,
+    quantidade INT NOT NULL,
+    preco_unitario DECIMAL(10,2) NOT NULL,
+
+    PRIMARY KEY (id_compra, id_item),
+
+    FOREIGN KEY (id_compra)
+        REFERENCES compra(id_compra),
+
+    FOREIGN KEY (id_item)
+        REFERENCES item(id_item)
+) ENGINE=InnoDB;
 
 
-    foreign key(id_time) references time_pokemon(id_time),
-    foreign key(id_pokemon) references pokemon(id_pokemon),
+CREATE TABLE evolucao (
+    id_evolucao INT AUTO_INCREMENT PRIMARY KEY,
+    id_pokemon INT NOT NULL,
+    id_pokemon_evolucao INT NOT NULL,
+    id_item INT NOT NULL,
+
+    UNIQUE (id_pokemon, id_item),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon),
+
+    FOREIGN KEY (id_pokemon_evolucao)
+        REFERENCES pokemon(id_pokemon),
+
+    FOREIGN KEY (id_item)
+        REFERENCES item(id_item)
+) ENGINE=InnoDB;
 
 
-    unique(id_time,posicao)
-);
-
-
-create table carteira(
-    id_carteira int AUTO_INCREMENT primary key,
-    id_usuario int not null unique,
-    saldo decimal(10,2) not null default 0,
-
-
-    foreign key(id_usuario) references usuario(id_usuario)
-);
-
-
-create table inventario(
-    id_usuario int not null,
-    id_item int not null,
-    quantidade int not null default 0,
-
-
-    primary key(id_usuario,id_item),
-
-
-    foreign key(id_usuario) references usuario(id_usuario),
-	foreign key(id_item) references item(id_item) 
-);
-
-
-create table compra(
-    id_compra int AUTO_INCREMENT primary key,
-    id_usuario int not null,
-    data_compra datetime not null default CURRENT_TIMESTAMP,
-    valor_total decimal(10,2) not null,
-
-
-    foreign key(id_usuario) references usuario(id_usuario)
-);
-
-
-create table compra_item(
-    id_compra int not null,
-    id_item int not null,
-    quantidade int not null,
-    preco_unitario decimal(10,2) not null,
-
-
-    primary key(id_compra,id_item),
-
-
-    foreign key(id_compra) references compra(id_compra),
-    foreign key(id_item) references item(id_item)
-);
-
-
-create table evolucao(
-    id_evolucao int AUTO_INCREMENT primary key,
-    id_pokemon int not null,
-    id_pokemon_evolucao int not null,
-    id_item int not null,
-
-
-    foreign key(id_pokemon) references pokemon(id_pokemon),
-    foreign key(id_pokemon_evolucao) references pokemon(id_pokemon),
-    foreign key(id_item) references item(id_item)
-);
-
-CREATE TABLE pokemon_time_status(
+CREATE TABLE pokemon_time_status (
     id_time INT NOT NULL,
     id_pokemon INT NOT NULL,
     hp_atual INT NOT NULL,
     status_atual VARCHAR(30) DEFAULT NULL,
     turnos_status INT NOT NULL DEFAULT 0,
+    nivel INT NOT NULL DEFAULT 1,
+    xp INT NOT NULL DEFAULT 0,
 
     PRIMARY KEY (id_time, id_pokemon),
 
     FOREIGN KEY (id_time, id_pokemon)
-    REFERENCES time_membro(id_time, id_pokemon)
-    ON DELETE CASCADE
-);
+        REFERENCES time_membro(id_time, id_pokemon)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 
 CREATE TABLE fase (
     id_fase INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    tipo VARCHAR(30) NOT NULL
-);
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    tipo VARCHAR(30) NOT NULL,
+    recompensa_vitoria INT NOT NULL DEFAULT 0,
+    xp_recompensa INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
 
 CREATE TABLE fase_pokemon (
     id_fase INT NOT NULL,
@@ -187,7 +203,8 @@ CREATE TABLE fase_pokemon (
 
     FOREIGN KEY (id_pokemon)
         REFERENCES pokemon(id_pokemon)
-);
+) ENGINE=InnoDB;
+
 
 CREATE TABLE log_batalha (
     id_batalha INT AUTO_INCREMENT PRIMARY KEY,
@@ -195,45 +212,19 @@ CREATE TABLE log_batalha (
     id_fase INT NOT NULL,
     resultado VARCHAR(20) NOT NULL,
     recompensa DECIMAL(10,2) DEFAULT 0,
+    xp_recebido INT NOT NULL DEFAULT 0,
+    chave_batalha CHAR(36) DEFAULT NULL,
     data_batalha DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_chave_batalha (chave_batalha),
 
     FOREIGN KEY (id_usuario)
         REFERENCES usuario(id_usuario),
 
     FOREIGN KEY (id_fase)
         REFERENCES fase(id_fase)
-);
+) ENGINE=InnoDB;
 
-CREATE TABLE ataque (
-    id_ataque INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL UNIQUE,
-    id_tipo INT NOT NULL,
-    poder INT NOT NULL DEFAULT 0,
-    precisao INT,
-    categoria VARCHAR(20) NOT NULL,
-    efeito_status VARCHAR(30),
-    chance_efeito DECIMAL(5,2) DEFAULT 0,
-    dados_efeito JSON NULL,
-
-    FOREIGN KEY (id_tipo) REFERENCES tipo(id_tipo)
-);
-
-CREATE TABLE pokemon_ataque (
-    id_pokemon INT NOT NULL,
-    id_ataque INT NOT NULL,
-    posicao INT NOT NULL,
-
-    PRIMARY KEY (id_pokemon, posicao),
-
-    UNIQUE (id_pokemon, id_ataque),
-
-    FOREIGN KEY (id_pokemon)
-        REFERENCES pokemon(id_pokemon)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (id_ataque)
-        REFERENCES ataque(id_ataque)
-);
 
 CREATE TABLE log_batalha_pokemon (
     id_batalha INT NOT NULL,
@@ -249,7 +240,41 @@ CREATE TABLE log_batalha_pokemon (
 
     FOREIGN KEY (id_pokemon)
         REFERENCES pokemon(id_pokemon)
-);
+) ENGINE=InnoDB;
+
+
+CREATE TABLE ataque (
+    id_ataque INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    id_tipo INT NOT NULL,
+    poder INT NOT NULL DEFAULT 0,
+    precisao INT,
+    categoria VARCHAR(20) NOT NULL,
+    efeito_status VARCHAR(30),
+    chance_efeito DECIMAL(5,2) DEFAULT 0,
+    dados_efeito JSON DEFAULT NULL,
+
+    FOREIGN KEY (id_tipo)
+        REFERENCES tipo(id_tipo)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE pokemon_ataque (
+    id_pokemon INT NOT NULL,
+    id_ataque INT NOT NULL,
+    posicao INT NOT NULL,
+
+    PRIMARY KEY (id_pokemon, posicao),
+    UNIQUE (id_pokemon, id_ataque),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (id_ataque)
+        REFERENCES ataque(id_ataque)
+) ENGINE=InnoDB;
+
 
 CREATE TABLE progresso_usuario (
     id_usuario INT PRIMARY KEY,
@@ -257,7 +282,8 @@ CREATE TABLE progresso_usuario (
 
     FOREIGN KEY (id_usuario)
         REFERENCES usuario(id_usuario)
-);
+) ENGINE=InnoDB;
+
 
 CREATE TABLE usuario_fase_concluida (
     id_usuario INT NOT NULL,
@@ -271,7 +297,34 @@ CREATE TABLE usuario_fase_concluida (
 
     FOREIGN KEY (id_fase)
         REFERENCES fase(id_fase)
-);
+) ENGINE=InnoDB;
+
+
+CREATE TABLE pokemon_desbloqueado (
+    id_usuario INT NOT NULL,
+    id_pokemon INT NOT NULL,
+
+    PRIMARY KEY (id_usuario, id_pokemon),
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+
+    FOREIGN KEY (id_pokemon)
+        REFERENCES pokemon(id_pokemon)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE escolha_inicial_pokemon (
+    id_usuario INT PRIMARY KEY,
+
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB;
+
+
+DROP TRIGGER IF EXISTS criar_carteira_usuario;
+DROP TRIGGER IF EXISTS atualizar_inventario_compra;
+
 
 DELIMITER //
 
@@ -283,9 +336,35 @@ BEGIN
     VALUES (NEW.id_usuario, 0);
 END //
 
+
+CREATE TRIGGER atualizar_inventario_compra
+AFTER INSERT ON compra_item
+FOR EACH ROW
+BEGIN
+
+    INSERT INTO inventario (
+        id_usuario,
+        id_item,
+        quantidade
+    )
+
+    SELECT
+        c.id_usuario,
+        NEW.id_item,
+        NEW.quantidade
+
+    FROM compra c
+    WHERE c.id_compra = NEW.id_compra
+
+    ON DUPLICATE KEY UPDATE
+        quantidade = quantidade + NEW.quantidade;
+
+END //
+
 DELIMITER ;
 
-CREATE VIEW vw_usuario_carteira AS
+
+CREATE OR REPLACE VIEW vw_usuario_carteira AS
 SELECT
     u.id_usuario,
     u.nome,
@@ -297,7 +376,8 @@ FROM usuario u
 LEFT JOIN carteira c
     ON u.id_usuario = c.id_usuario;
 
-CREATE VIEW vw_pokemon_tipos AS
+
+CREATE OR REPLACE VIEW vw_pokemon_tipos AS
 SELECT
     p.id_pokemon,
     p.nome,
@@ -316,7 +396,8 @@ INNER JOIN pokemon_tipo pt
 INNER JOIN tipo t
     ON pt.id_tipo = t.id_tipo;
 
-CREATE VIEW vw_time_pokemon AS
+
+CREATE OR REPLACE VIEW vw_time_pokemon AS
 SELECT
     u.id_usuario,
     u.nome AS nome_usuario,
@@ -344,41 +425,3 @@ LEFT JOIN pokemon_time_status pts
     ON tm.id_time = pts.id_time
     AND tm.id_pokemon = pts.id_pokemon
 WHERE tp.ativo = 1;
-
-
-
-DROP TRIGGER IF EXISTS atualizar_inventario_compra;
-
-CREATE TRIGGER atualizar_inventario_compra
-AFTER INSERT ON compra_item
-FOR EACH ROW
-
-INSERT INTO inventario (id_usuario, id_item, quantidade)
-SELECT
-    c.id_usuario,
-    NEW.id_item,
-    NEW.quantidade
-FROM compra c
-WHERE c.id_compra = NEW.id_compra
-
-ON DUPLICATE KEY UPDATE
-    quantidade = quantidade + NEW.quantidade;
-
-ALTER TABLE pokemon_time_status
-ADD COLUMN nivel INT NOT NULL DEFAULT 1,
-ADD COLUMN xp INT NOT NULL DEFAULT 0;
-
-ALTER TABLE log_batalha
-ADD COLUMN xp_recebido INT NOT NULL DEFAULT 0;
-
-ALTER TABLE pokemon_time_status
-DROP FOREIGN KEY pokemon_time_status_ibfk_1;
-
-
-ALTER TABLE fase
-ADD COLUMN recompensa_vitoria INT NOT NULL DEFAULT 0,
-ADD COLUMN xp_recompensa INT NOT NULL DEFAULT 0;
-
-ALTER TABLE log_batalha
-ADD COLUMN chave_batalha CHAR(36) NULL,
-ADD UNIQUE KEY uq_chave_batalha (chave_batalha);
