@@ -741,3 +741,266 @@ body {
     background-color: #5bbd70;
     transition: width 0.6s ease;
 }
+
+
+/* JANELA DE TROCA DE POKÉMON */
+
+.modal-troca[hidden] {
+    display: none !important;
+}
+
+.modal-troca {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.conteudo-modal-troca {
+    width: min(700px, 95%);
+    max-height: 85vh;
+
+    overflow-y: auto;
+
+    padding: 25px;
+
+    background: #eaf5ff;
+    border: 4px solid #42dce2;
+    box-shadow: 8px 8px 0 #315b78;
+
+    color: #315b78;
+    text-align: center;
+}
+
+.conteudo-modal-troca h2 {
+    margin-bottom: 10px;
+    color: #315b78;
+}
+
+.conteudo-modal-troca > p {
+    margin-bottom: 20px;
+}
+
+.lista-troca {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.cartao-troca {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 12px;
+
+    background: #ffffff;
+    border: 2px solid #42dce2;
+
+    color: #315b78;
+    font-family: inherit;
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.cartao-troca:hover:not(:disabled) {
+    background: #fff3bd;
+    border-color: #fccc0a;
+}
+
+.cartao-troca img {
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+}
+
+.cartao-troca h3 {
+    margin-bottom: 5px;
+}
+
+.cartao-troca p {
+    font-size: 13px;
+}
+
+.cartao-troca:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cartao-troca.pokemon-derrotado {
+    background: #d3d3d3;
+    border-color: #999999;
+}
+
+.cartao-troca span {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+
+    color: #b32626;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+    .lista-troca {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+#botao-voltar-batalha {
+    display: block;
+    margin: 0 auto 12px;
+    padding: 10px 20px;
+
+    border: 2px solid #5ce5e8;
+    background-color: #3c7397;
+    color: white;
+
+    font-family: "Pixelify Sans", sans-serif;
+    font-size: 16px;
+
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#botao-voltar-batalha:hover {
+    background-color: #5ce5e8;
+    color: #315b78;
+}
+
+
+/* JANELA DE RESULTADO DA BATALHA */
+
+.modal-resultado[hidden] {
+    display: none !important;
+}
+
+.modal-resultado {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.80);
+}
+
+.conteudo-modal-resultado {
+    width: min(600px, 95%);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    padding: 30px;
+
+    background: #eaf5ff;
+    border: 5px solid #42dce2;
+    box-shadow: 10px 10px 0 #315b78;
+
+    color: #315b78;
+    text-align: center;
+}
+
+.conteudo-modal-resultado h2 {
+    margin-bottom: 12px;
+    font-size: 38px;
+    color: #f0b900;
+    text-shadow: 2px 2px #315b78;
+}
+
+.conteudo-modal-resultado > p {
+    margin-bottom: 25px;
+    font-size: 20px;
+}
+
+.recompensa-dinheiro,
+.recompensa-xp {
+    margin-top: 18px;
+    padding: 18px;
+
+    background: #ffffff;
+    border: 3px solid #42dce2;
+}
+
+.recompensa-dinheiro h3,
+.recompensa-xp h3 {
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+#valor-recompensa {
+    font-size: 26px;
+    color: #c49400;
+}
+
+#lista-recompensas-xp {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-recompensa-xp {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 10px;
+
+    background: #eaf5ff;
+    border: 2px solid #b9d5e9;
+
+    font-size: 16px;
+}
+
+#botao-continuar {
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+
+    border: 3px solid #5ce5e8;
+    background: #3c7397;
+    color: white;
+
+    font-size: 22px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#botao-continuar:hover {
+    background: #5ce5e8;
+    color: #315b78;
+}
+
+@media (max-width: 600px) {
+    .conteudo-modal-resultado {
+        padding: 20px 14px;
+    }
+
+    .conteudo-modal-resultado h2 {
+        font-size: 30px;
+    }
+
+    .conteudo-modal-resultado > p {
+        font-size: 17px;
+    }
+
+    .item-recompensa-xp {
+        font-size: 14px;
+    }
+}

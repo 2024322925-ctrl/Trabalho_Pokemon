@@ -36,12 +36,44 @@ if (!$faseController->verificarAcessoFase($idUsuario, $idFase)) {
 }
 
 // Carrega o time e os Pokémon para a seleção
+
+// Carrega o time e os Pokémon para a seleção
 $dadosSelecao = $batalhaController->carregarSelecao($idUsuario);
 
 $timeAtivo = $dadosSelecao["time_ativo"];
 $pokemons = $dadosSelecao["pokemons"];
 
 $erro = "";
+
+// Recupera todos os Pokémon do time ao entrar na seleção de fase
+if ($timeAtivo && !empty($pokemons)) {
+
+    $idsPokemons = [];
+
+    foreach ($pokemons as $pokemon) {
+        $idsPokemons[] = (int) $pokemon["id_pokemon"];
+    }
+
+    $recuperouEstado = $batalhaController
+        ->recuperarEstadoDosPokemonsSelecionados(
+            (int) $timeAtivo["id_time"],
+            $idsPokemons
+        );
+
+    if ($recuperouEstado) {
+
+        // Recarrega os dados para exibir os HPs atualizados
+        $dadosSelecao = $batalhaController->carregarSelecao($idUsuario);
+
+        $timeAtivo = $dadosSelecao["time_ativo"];
+        $pokemons = $dadosSelecao["pokemons"];
+
+    } else {
+
+        $erro = "Não foi possível recuperar os Pokémon do time.";
+    }
+}
+
 
 // Processa o formulário
 if ($_SERVER["REQUEST_METHOD"] === "POST") {

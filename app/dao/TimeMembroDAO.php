@@ -33,15 +33,15 @@ class TimeMembroDAO {
 
 
             // Cria automaticamente o status inicial do Pokémon
-            $sqlStatus = "INSERT INTO pokemon_time_status
-                          (id_time, id_pokemon, hp_atual, status_atual)
-                          SELECT
-                              :id_time,
-                              :id_pokemon,
-                              hp,
-                              NULL
-                          FROM pokemon
-                          WHERE id_pokemon = :id_pokemon_busca";
+            $sqlStatus = "INSERT IGNORE INTO pokemon_time_status
+                            (id_time, id_pokemon, hp_atual, status_atual)
+                            SELECT
+                                :id_time,
+                                :id_pokemon,
+                                hp,
+                                NULL
+                            FROM pokemon
+                            WHERE id_pokemon = :id_pokemon_busca";
 
             $stmtStatus = $this->conexao->prepare($sqlStatus);
 

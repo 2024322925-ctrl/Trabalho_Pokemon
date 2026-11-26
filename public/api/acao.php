@@ -36,19 +36,190 @@ require_once __DIR__ . "/../../app/controllers/BatalhaController.php";
 
 $batalhaController = new BatalhaController();
 
-// Recupera o ID do ataque enviado pelo jogador
-$idAtaque = filter_input(INPUT_POST, "id_ataque", FILTER_VALIDATE_INT);
+// Verifica se o jogador solicitou fugir da batalha
+if (isset($_POST["fugir"]) && $_POST["fugir"] === "1") {
 
-if (!$idAtaque || $idAtaque <= 0) {
+    $batalha = $_SESSION["batalha"];
+
+    // Verifica se a batalha pertence ao usuário autenticado
+    if (
+        (int) ($batalha["id_usuario"] ?? 0)
+        !== (int) $_SESSION["id_usuario"]
+    ) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Batalha inválida."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Recupera os IDs dos três Pokémon selecionados
+    $idsPokemons = [];
+
+    foreach ($batalha["pokemons_selecionados"] as $pokemon) {
+        $idsPokemons[] = (int) $pokemon["id_pokemon"];
+    }
+
+    // Recupera o HP e remove os status negativos
+    $recuperouEstado = $batalhaController
+        ->recuperarEstadoDosPokemonsSelecionados(
+            $batalha["id_time"],
+            $idsPokemons
+        );
+
+    if (!$recuperouEstado) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Não foi possível recuperar seus Pokémon."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Encerra a batalha sem registrar derrota ou conceder recompensas
+    unset($_SESSION["batalha"]);
+    unset($_SESSION["preparacao_batalha"]);
+
+    echo json_encode([
+        "sucesso" => true,
+        "resultado_batalha" => "fuga",
+        "mensagem" => "Você fugiu da batalha!"
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
+
+// Recupera os dados enviados pelo jogador
+$idAtaque = filter_input(INPUT_POST, "id_ataque", FILTER_VALIDATE_INT);
+$idPokemonTroca = filter_input(INPUT_POST, "id_pokemon", FILTER_VALIDATE_INT);
+
+// Identifica se a ação é uma troca voluntária
+$trocaVoluntaria = $idPokemonTroca !== null
+    && $idPokemonTroca !== false
+    && $idPokemonTroca > 0;
+
+// Se não for troca, precisa ser um ataque válido
+if (!$trocaVoluntaria && (!$idAtaque || $idAtaque <= 0)) {
     echo json_encode([
         "sucesso" => false,
-        "mensagem" => "Ataque inválido."
+        "mensagem" => "Ataque ou Pokémon inválido."
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 // Recupera os dados da batalha
 $batalha = $_SESSION["batalha"];
+
+/*
+|--------------------------------------------------------------------------
+| TENTATIVA DE FINALIZAÇÃO DE UMA BATALHA JÁ ENCERRADA
+|--------------------------------------------------------------------------
+*/
+
+// Se a batalha já terminou, não executa outro turno
+if (
+    in_array(
+        $batalha["resultado"] ?? null,
+        ["vitoria", "derrota"],
+        true
+    )
+) {
+
+    // Verifica se a finalização já foi realizada
+    if (empty($_SESSION["batalha"]["finalizacao"])) {
+
+        // Recupera os Pokémon selecionados
+        $pokemonsSelecionados = $batalha["pokemons_selecionados"] ?? [];
+
+        $idsPokemons = [];
+
+        foreach ($pokemonsSelecionados as $pokemon) {
+            $idsPokemons[] = (int) $pokemon["id_pokemon"];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CORREÇÃO: UTILIZA O TIME DA BATALHA
+        |--------------------------------------------------------------------------
+        */
+
+        // Recupera o mesmo time utilizado no início da batalha
+        $idTime = (int) ($batalha["id_time"] ?? 0);
+
+        if ($idTime <= 0) {
+            echo json_encode([
+                "sucesso" => false,
+                "mensagem" => "Não foi possível identificar o time utilizado na batalha."
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        // Salva o HP e o status dos três Pokémon selecionados
+        foreach ($pokemonsSelecionados as $pokemon) {
+
+            $salvouEstado = $batalhaController->atualizarEstadoPokemon(
+                $idTime,
+                (int) $pokemon["id_pokemon"],
+                (int) $pokemon["hp_atual"],
+                $pokemon["status_atual"] ?? null
+            );
+
+            if (!$salvouEstado) {
+                echo json_encode([
+                    "sucesso" => false,
+                    "mensagem" => "Não foi possível atualizar o estado dos Pokémon no banco."
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        }
+
+        // Tenta finalizar a batalha novamente
+        $dadosFinalizacao = $batalhaController->finalizarBatalha(
+            (int) $_SESSION["id_usuario"],
+            $idTime,
+            (int) $batalha["id_fase"],
+            $batalha["resultado"],
+            $idsPokemons,
+            $batalha["chave_batalha"] ?? null
+        );
+
+        if (
+            !$dadosFinalizacao ||
+            empty($dadosFinalizacao["sucesso"])
+        ) {
+            echo json_encode([
+                "sucesso" => false,
+                "resultado_batalha" => $batalha["resultado"],
+                "mensagem" => "Não foi possível finalizar a batalha e registrar as recompensas."
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        // Guarda os dados da finalização na sessão
+        $_SESSION["batalha"]["finalizacao"] = $dadosFinalizacao;
+    }
+
+    // Recupera os dados já registrados
+    $dadosFinalizacao = $_SESSION["batalha"]["finalizacao"];
+
+    echo json_encode([
+        "sucesso" => true,
+        "resultado_batalha" => $batalha["resultado"],
+        "recompensas" => $dadosFinalizacao,
+        "mensagem" => "Batalha finalizada."
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
+
+// Impede ataques enquanto o jogador precisa escolher outro Pokémon
+if (!empty($batalha["aguardando_troca"])) {
+    echo json_encode([
+        "sucesso" => false,
+        "solicitar_troca" => true,
+        "mensagem" => "Escolha outro Pokémon para continuar a batalha."
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 $idPokemonAtivo = $batalha["id_pokemon_ativo"] ?? null;
 $indiceAdversario = $batalha["indice_adversario"] ?? null;
@@ -93,6 +264,54 @@ if ($pokemonAtacante === null) {
     exit;
 }
 
+// Valida a troca voluntária
+if ($trocaVoluntaria) {
+
+    // Não permite trocar pelo Pokémon que já está em campo
+    if ((int) $idPokemonTroca === (int) $idPokemonAtivo) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Esse Pokémon já está em batalha."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $pokemonEncontrado = false;
+
+    foreach ($pokemonsSelecionados as $indice => $pokemon) {
+
+        if ((int) $pokemon["id_pokemon"] === (int) $idPokemonTroca) {
+
+            $pokemonEncontrado = true;
+
+            // Não permite escolher um Pokémon derrotado
+            if ((int) ($pokemon["hp_atual"] ?? 0) <= 0) {
+                echo json_encode([
+                    "sucesso" => false,
+                    "mensagem" => "Esse Pokémon está derrotado."
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            // Atualiza o Pokémon ativo
+            $pokemonAtacante = $pokemon;
+            $indiceAtacante = $indice;
+            $idPokemonAtivo = (int) $idPokemonTroca;
+
+            break;
+        }
+    }
+
+    // Verifica se o Pokémon pertence à equipe
+    if (!$pokemonEncontrado) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Esse Pokémon não pertence à sua equipe."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
+
 // Recupera o adversário atual
 $pokemonAdversario = $pokemonsFase[$indiceAdversario];
 
@@ -127,18 +346,23 @@ if ($hpAtacante <= 0 || $hpAdversario <= 0) {
     exit;
 }
 
-// Valida se o ataque pertence ao Pokémon ativo
-$ataqueJogador = $batalhaController->validarAtaque(
-    $idPokemonAtivo,
-    $idAtaque
-);
+// Valida o ataque somente quando a ação não for uma troca
+$ataqueJogador = null;
 
-if (!$ataqueJogador) {
-    echo json_encode([
-        "sucesso" => false,
-        "mensagem" => "Esse Pokémon não possui esse ataque."
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+if (!$trocaVoluntaria) {
+
+    $ataqueJogador = $batalhaController->validarAtaque(
+        $idPokemonAtivo,
+        $idAtaque
+    );
+
+    if (!$ataqueJogador) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Esse Pokémon não possui esse ataque."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
 
 // Sorteia o ataque do adversário
@@ -174,6 +398,20 @@ $danoAdversario = 0;
 $efetividadeJogador = 1;
 $efetividadeAdversario = 1;
 
+// Controla quais Pokémon já realizaram sua ação neste turno
+$jaAgiram = [
+    "jogador" => false,
+    "adversario" => false
+];
+
+// Na troca voluntária, o jogador já utilizou sua ação
+if ($trocaVoluntaria) {
+    $jaAgiram["jogador"] = true;
+}
+
+// Controla a entrada de um novo adversário
+$pokemonAdversarioEntrou = false;
+
 /*
 |--------------------------------------------------------------------------
 | REGISTRO DOS ACONTECIMENTOS
@@ -193,7 +431,7 @@ $registrarEventos = function (
         $mensagensDoAtaque[] = $resultado["mensagem"];
     }
 
-    // Mensagem de efetividade para ambos os Pokémon
+    // Mensagem de efetividade
     if (!empty($resultado["mensagem_efetividade"])) {
         $mensagensDoAtaque[] = $resultado["mensagem_efetividade"];
     }
@@ -271,10 +509,11 @@ $executarAtaqueDoTurno = function (
     &$danoJogador,
     &$danoAdversario,
     &$efetividadeJogador,
-    &$efetividadeAdversario
+    &$efetividadeAdversario,
+    &$jaAgiram
 ) {
 
-    // Verifica se o Pokémon pode agir diretamente na variável original
+    // Verifica se o Pokémon pode agir
     if ($lado === "jogador") {
 
         $condicao = $batalhaController->verificarCondicaoDeAcao(
@@ -287,6 +526,9 @@ $executarAtaqueDoTurno = function (
             $pokemonAdversario
         );
     }
+
+    // Marca que chegou a vez deste Pokémon
+    $jaAgiram[$lado] = true;
 
     // Se não puder agir, registra a mensagem e encerra sua vez
     if (!$condicao["pode_agir"]) {
@@ -302,13 +544,22 @@ $executarAtaqueDoTurno = function (
         return;
     }
 
+    // Identifica o lado do alvo
+    $ladoAlvo = ($lado === "jogador")
+        ? "adversario"
+        : "jogador";
+
+    // Verifica se o alvo ainda terá sua ação neste turno
+    $alvoAindaVaiAgir = !$jaAgiram[$ladoAlvo];
+
     // Executa o ataque conforme o lado
     if ($lado === "jogador") {
 
         $resultado = $batalhaController->executarAtaque(
             $pokemonAtacante,
             $pokemonAdversario,
-            $ataque
+            $ataque,
+            $alvoAindaVaiAgir
         );
 
         $pokemonAtacante = $resultado["atacante"];
@@ -322,7 +573,8 @@ $executarAtaqueDoTurno = function (
         $resultado = $batalhaController->executarAtaque(
             $pokemonAdversario,
             $pokemonAtacante,
-            $ataque
+            $ataque,
+            $alvoAindaVaiAgir
         );
 
         $pokemonAdversario = $resultado["atacante"];
@@ -339,7 +591,9 @@ $executarAtaqueDoTurno = function (
         $pokemonAdversario
     );
 
-    $mensagens[] = $resultado["mensagem"];
+    if (!empty($resultado["mensagem"])) {
+        $mensagens[] = $resultado["mensagem"];
+    }
 
     if (!empty($resultado["mensagem_efetividade"])) {
         $mensagensEfetividade[] = $resultado["mensagem_efetividade"];
@@ -351,32 +605,11 @@ $executarAtaqueDoTurno = function (
     );
 };
 
+// Executa o turno conforme a ação escolhida
+if ($trocaVoluntaria) {
 
-// Define a ordem dos ataques
-if ($ordemTurnos["primeiro"] === "jogador") {
-
-    // Primeiro: jogador
-    $executarAtaqueDoTurno(
-        $pokemonAtacante,
-        $pokemonAdversario,
-        $ataqueJogador,
-        "jogador"
-    );
-
-    // Segundo: adversário, caso ainda esteja vivo
-    if ((int) $pokemonAdversario["hp_atual"] > 0) {
-
-        $executarAtaqueDoTurno(
-            $pokemonAtacante,
-            $pokemonAdversario,
-            $ataqueAdversario,
-            "adversario"
-        );
-    }
-
-} else {
-
-    // Primeiro: adversário
+    // A troca consome a ação do jogador.
+    // Portanto, somente o adversário executa seu ataque.
     $executarAtaqueDoTurno(
         $pokemonAtacante,
         $pokemonAdversario,
@@ -384,18 +617,52 @@ if ($ordemTurnos["primeiro"] === "jogador") {
         "adversario"
     );
 
-    // Segundo: jogador, caso ainda esteja vivo
-    if ((int) $pokemonAtacante["hp_atual"] > 0) {
+} else {
 
+    // Define a ordem dos ataques conforme a velocidade
+    if ($ordemTurnos["primeiro"] === "jogador") {
+
+        // Primeiro: jogador
         $executarAtaqueDoTurno(
             $pokemonAtacante,
             $pokemonAdversario,
             $ataqueJogador,
             "jogador"
         );
+
+        // Segundo: adversário, caso ainda esteja vivo
+        if ((int) $pokemonAdversario["hp_atual"] > 0) {
+
+            $executarAtaqueDoTurno(
+                $pokemonAtacante,
+                $pokemonAdversario,
+                $ataqueAdversario,
+                "adversario"
+            );
+        }
+
+    } else {
+
+        // Primeiro: adversário
+        $executarAtaqueDoTurno(
+            $pokemonAtacante,
+            $pokemonAdversario,
+            $ataqueAdversario,
+            "adversario"
+        );
+
+        // Segundo: jogador, caso ainda esteja vivo
+        if ((int) $pokemonAtacante["hp_atual"] > 0) {
+
+            $executarAtaqueDoTurno(
+                $pokemonAtacante,
+                $pokemonAdversario,
+                $ataqueJogador,
+                "jogador"
+            );
+        }
     }
 }
-
 
 /*
 |--------------------------------------------------------------------------
@@ -498,32 +765,199 @@ $aplicarDanoResidual(
     "adversario"
 );
 
-
 /*
 |--------------------------------------------------------------------------
-| ATUALIZAÇÃO DA SESSÃO
+| ATUALIZAÇÃO DA SESSÃO E CONTROLE DE DERROTAS
 |--------------------------------------------------------------------------
 */
 
-// Atualiza os dados do Pokémon do jogador
+// Atualiza os dados de HP do Pokémon ativo
+$hpMaximoPokemon = (int) $pokemonAtacante["hp_maximo"];
+
+$hpAtualPokemon = (int) $pokemonAtacante["hp_atual"];
+
+$pokemonAtacante["hp_atual_exibicao"] = $hpAtualPokemon;
+
+$pokemonAtacante["porcentagem_hp"] = $hpMaximoPokemon > 0
+    ? ($hpAtualPokemon / $hpMaximoPokemon) * 100
+    : 0;
+
+// Atualiza o Pokémon do jogador na equipe
 $pokemonsSelecionados[$indiceAtacante] = $pokemonAtacante;
 
-$_SESSION["batalha"]["pokemons_selecionados"] = $pokemonsSelecionados;
+// Controla se o jogador precisa escolher outro Pokémon
+$aguardandoTroca = false;
+$resultadoBatalha = null;
 
-// Atualiza a cópia do Pokémon inicial, se for o ativo
-if (
-    isset($_SESSION["batalha"]["pokemon_inicial"]) &&
-    (int) $_SESSION["batalha"]["pokemon_inicial"]["id_pokemon"] === (int) $idPokemonAtivo
-) {
-    $_SESSION["batalha"]["pokemon_inicial"] = $pokemonAtacante;
+// Verifica se o Pokémon do jogador foi derrotado
+if ((int) $pokemonAtacante["hp_atual"] <= 0) {
+
+    // Procura Pokémon restantes com HP maior que zero
+    $pokemonsDisponiveis = array_filter(
+        $pokemonsSelecionados,
+        function ($pokemon) {
+            return (int) ($pokemon["hp_atual"] ?? 0) > 0;
+        }
+    );
+
+    if (count($pokemonsDisponiveis) > 0) {
+
+        $aguardandoTroca = true;
+
+        $eventos[] = [
+            "mensagem" => "Escolha outro Pokémon para continuar!",
+            "hp_jogador" => 0,
+            "hp_maximo_jogador" => (int) $pokemonAtacante["hp_maximo"],
+            "porcentagem_hp_jogador" => 0,
+
+            "hp_adversario" => (int) $pokemonAdversario["hp_atual"],
+            "hp_maximo_adversario" => (int) $pokemonAdversario["hp_maximo"],
+            "porcentagem_hp_adversario" => (
+                (int) $pokemonAdversario["hp_maximo"] > 0
+                    ? (
+                        (int) $pokemonAdversario["hp_atual"]
+                        / (int) $pokemonAdversario["hp_maximo"]
+                    ) * 100
+                    : 0
+            )
+        ];
+
+    } else {
+
+        // Todos os Pokémon do jogador foram derrotados
+        $resultadoBatalha = "derrota";
+    }
 }
 
-// Atualiza o adversário na lista da fase
-$_SESSION["batalha"]["pokemons_fase"][$indiceAdversario] = $pokemonAdversario;
+// Atualiza os dados de HP do adversário atual
+$hpMaximoAdversarioAtual = (int) $pokemonAdversario["hp_maximo"];
+$hpAtualAdversarioAtual = (int) $pokemonAdversario["hp_atual"];
 
-// Atualiza a cópia do adversário atual
+$pokemonAdversario["hp_atual_exibicao"] = $hpAtualAdversarioAtual;
+
+$pokemonAdversario["porcentagem_hp"] = $hpMaximoAdversarioAtual > 0
+    ? ($hpAtualAdversarioAtual / $hpMaximoAdversarioAtual) * 100
+    : 0;
+
+// Salva o adversário atualizado na lista da fase
+$pokemonsFase[$indiceAdversario] = $pokemonAdversario;
+
+// Verifica se o adversário foi derrotado
+if ((int) $pokemonAdversario["hp_atual"] <= 0) {
+
+    $proximoIndiceAdversario = null;
+
+    // Procura o próximo adversário ainda não derrotado
+    for (
+        $i = $indiceAdversario + 1;
+        $i < count($pokemonsFase);
+        $i++
+    ) {
+
+        $hpProximo = (int) (
+            $pokemonsFase[$i]["hp_atual"]
+            ?? $pokemonsFase[$i]["hp_maximo"]
+            ?? $pokemonsFase[$i]["hp"]
+            ?? 0
+        );
+
+        if ($hpProximo > 0) {
+            $proximoIndiceAdversario = $i;
+            break;
+        }
+    }
+
+    if ($proximoIndiceAdversario !== null) {
+
+        // Atualiza o índice do adversário
+        $indiceAdversario = $proximoIndiceAdversario;
+
+        // Recupera o próximo Pokémon
+        $pokemonAdversario = $pokemonsFase[$indiceAdversario];
+
+        $hpNovoAdversario = (int) (
+            $pokemonAdversario["hp_atual"]
+            ?? $pokemonAdversario["hp_maximo"]
+            ?? $pokemonAdversario["hp"]
+            ?? 0
+        );
+
+        $pokemonAdversario["hp_atual"] = $hpNovoAdversario;
+        $pokemonAdversario["hp_atual_exibicao"] = $hpNovoAdversario;
+
+        // Calcula a porcentagem de HP do novo adversário
+        $hpMaximoNovoAdversario = (int) $pokemonAdversario["hp_maximo"];
+
+        $pokemonAdversario["porcentagem_hp"] = $hpMaximoNovoAdversario > 0
+            ? ($hpNovoAdversario / $hpMaximoNovoAdversario) * 100
+            : 0;
+
+        // Salva o novo adversário na lista da fase
+        $pokemonsFase[$indiceAdversario] = $pokemonAdversario;
+
+        // Marca que um novo adversário entrou
+        $pokemonAdversarioEntrou = true;
+
+        // Registra a entrada do novo adversário
+        $eventos[] = [
+            "mensagem" => $pokemonAdversario["nome"]
+                . " entrou na batalha!",
+            "novo_adversario" => true,
+
+            "hp_jogador" => (int) $pokemonAtacante["hp_atual"],
+            "hp_maximo_jogador" => (int) $pokemonAtacante["hp_maximo"],
+            "porcentagem_hp_jogador" => (
+                (int) $pokemonAtacante["hp_maximo"] > 0
+                    ? (
+                        (int) $pokemonAtacante["hp_atual"]
+                        / (int) $pokemonAtacante["hp_maximo"]
+                    ) * 100
+                    : 0
+            ),
+
+            "hp_adversario" => $hpNovoAdversario,
+            "hp_maximo_adversario" => (int) $pokemonAdversario["hp_maximo"],
+            "porcentagem_hp_adversario" => (
+                (int) $pokemonAdversario["hp_maximo"] > 0
+                    ? (
+                        $hpNovoAdversario
+                        / (int) $pokemonAdversario["hp_maximo"]
+                    ) * 100
+                    : 0
+            )
+        ];
+
+    } else {
+
+        // Todos os adversários foram derrotados
+        if ($resultadoBatalha === null) {
+            $resultadoBatalha = "vitoria";
+        }
+    }
+}
+
+if ($resultadoBatalha === "vitoria") {
+    $aguardandoTroca = false;
+}
+
+// Atualiza os dados da batalha na sessão
+$_SESSION["batalha"]["pokemons_selecionados"] = $pokemonsSelecionados;
+
+// Atualiza o Pokémon ativo da batalha
+$_SESSION["batalha"]["id_pokemon_ativo"] = $idPokemonAtivo;
+
+// Atualiza os dados do Pokémon exibido na batalha
+$_SESSION["batalha"]["pokemon_inicial"] = $pokemonAtacante;
+
+$_SESSION["batalha"]["pokemons_fase"] = $pokemonsFase;
+$_SESSION["batalha"]["indice_adversario"] = $indiceAdversario;
 $_SESSION["batalha"]["pokemon_adversario"] = $pokemonAdversario;
 
+$_SESSION["batalha"]["aguardando_troca"] = $aguardandoTroca;
+
+if ($resultadoBatalha !== null) {
+    $_SESSION["batalha"]["resultado"] = $resultadoBatalha;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -531,35 +965,82 @@ $_SESSION["batalha"]["pokemon_adversario"] = $pokemonAdversario;
 |--------------------------------------------------------------------------
 */
 
-// Busca o time ativo do jogador
-$timeAtivo = $batalhaController->buscarTimeAtivo(
-    $_SESSION["id_usuario"]
-);
+// Recupera o mesmo time utilizado no início da batalha
+$idTime = (int) ($batalha["id_time"] ?? 0);
 
-if (!$timeAtivo) {
+if ($idTime <= 0) {
     echo json_encode([
         "sucesso" => false,
-        "mensagem" => "Não foi possível localizar o time do jogador."
+        "mensagem" => "Não foi possível identificar o time utilizado na batalha."
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-// Salva o HP e o status atual do Pokémon do jogador
-$salvouEstado = $batalhaController->atualizarEstadoPokemon(
-    $timeAtivo["id_time"],
-    $idPokemonAtivo,
-    $pokemonAtacante["hp_atual"],
-    $pokemonAtacante["status_atual"] ?? null
-);
+// Salva o HP e o status dos três Pokémon selecionados
+foreach ($pokemonsSelecionados as $pokemonSelecionado) {
 
-if (!$salvouEstado) {
-    echo json_encode([
-        "sucesso" => false,
-        "mensagem" => "Não foi possível atualizar o HP do Pokémon no banco."
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    $salvouEstado = $batalhaController->atualizarEstadoPokemon(
+        $idTime,
+        (int) $pokemonSelecionado["id_pokemon"],
+        (int) $pokemonSelecionado["hp_atual"],
+        $pokemonSelecionado["status_atual"] ?? null
+    );
+
+    if (!$salvouEstado) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Não foi possível atualizar o estado dos Pokémon no banco."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
 
+/*
+|--------------------------------------------------------------------------
+| FINALIZAÇÃO DA BATALHA E CONCESSÃO DE RECOMPENSAS
+|--------------------------------------------------------------------------
+*/
+
+$dadosFinalizacao = null;
+
+// Somente vitórias e derrotas são registradas
+if (in_array($resultadoBatalha, ["vitoria", "derrota"], true)) {
+
+    // Recupera os IDs dos três Pokémon selecionados
+    $idsPokemons = [];
+
+    foreach ($pokemonsSelecionados as $pokemon) {
+        $idsPokemons[] = (int) $pokemon["id_pokemon"];
+    }
+
+    // Recupera a chave única da batalha
+    $chaveBatalha = $_SESSION["batalha"]["chave_batalha"] ?? null;
+
+    // Registra a batalha e concede as recompensas
+    $dadosFinalizacao = $batalhaController->finalizarBatalha(
+        (int) $_SESSION["id_usuario"],
+        $idTime,
+        (int) $_SESSION["batalha"]["id_fase"],
+        $resultadoBatalha,
+        $idsPokemons,
+        $chaveBatalha
+    );
+
+    // Verifica se a finalização foi concluída
+    if (
+        !$dadosFinalizacao ||
+        empty($dadosFinalizacao["sucesso"])
+    ) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Não foi possível finalizar a batalha e registrar as recompensas."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Guarda os dados das recompensas na sessão
+    $_SESSION["batalha"]["finalizacao"] = $dadosFinalizacao;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -583,7 +1064,6 @@ $porcentagemHpAdversario = $hpAdversarioMaximo > 0
     ? ($hpAdversarioAtual / $hpAdversarioMaximo) * 100
     : 0;
 
-
 /*
 |--------------------------------------------------------------------------
 | RESPOSTA PARA O JAVASCRIPT
@@ -593,6 +1073,22 @@ $porcentagemHpAdversario = $hpAdversarioMaximo > 0
 echo json_encode([
 
     "sucesso" => true,
+
+    // Controle da troca e do encerramento da batalha
+    "solicitar_troca" => $aguardandoTroca,
+    "resultado_batalha" => $resultadoBatalha,
+
+    // Dados das recompensas da batalha
+    "recompensas" => $dadosFinalizacao,
+
+    "indice_adversario" => $indiceAdversario,
+
+    // Informa se um novo adversário entrou
+    "pokemon_adversario_entrou" => $pokemonAdversarioEntrou,
+
+    // Dados atualizados da batalha
+    "pokemon_adversario" => $pokemonAdversario,
+    "pokemons_selecionados" => $pokemonsSelecionados,
 
     // Acontecimentos individuais do turno
     "eventos" => $eventos,

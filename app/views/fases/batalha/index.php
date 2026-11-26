@@ -82,6 +82,23 @@ if (!$batalhaExistente) {
         (int) $dadosBatalha["pokemon_inicial"]["id_pokemon"];
 }
 
+// Gera uma chave única para identificar esta batalha
+if (empty($_SESSION["batalha"]["chave_batalha"])) {
+
+    $uuid = bin2hex(random_bytes(16));
+
+    // Define a versão e a variante do UUID
+    $uuid[12] = "4";
+    $uuid[16] = dechex((hexdec($uuid[16]) & 3) | 8);
+
+    $_SESSION["batalha"]["chave_batalha"] =
+        substr($uuid, 0, 8) . "-" .
+        substr($uuid, 8, 4) . "-" .
+        substr($uuid, 12, 4) . "-" .
+        substr($uuid, 16, 4) . "-" .
+        substr($uuid, 20, 12);
+}
+
 // Recupera os dados armazenados na sessão
 $dadosBatalha = $_SESSION["batalha"];
 
@@ -169,7 +186,10 @@ $posicoesPokemon = [
 
                     <?php foreach ($pokemonsSelecionados as $pokemon): ?>
 
-                        <div class="cartao-equipe <?= $pokemon["pokemon_ativo"] ? 'pokemon-ativo' : '' ?>">
+                        <div
+                            class="cartao-equipe <?= $pokemon["pokemon_ativo"] ? 'pokemon-ativo' : '' ?>"
+                            data-id-pokemon="<?= (int) $pokemon["id_pokemon"] ?>"
+                        >
 
                             <img
                                 src="<?= htmlspecialchars(
@@ -382,7 +402,122 @@ $posicoesPokemon = [
             </div>
 
         </section>
+        
+                <!-- JANELA DE TROCA DE POKÉMON -->
+        <div
+            class="modal-troca"
+            id="modal-troca"
+            data-troca-obrigatoria="<?= !empty($dadosBatalha["aguardando_troca"]) ? 'true' : 'false' ?>"
+            <?= !empty($dadosBatalha["aguardando_troca"]) ? '' : 'hidden' ?>
+        >
 
+            <div class="conteudo-modal-troca">
+
+                <h2>ESCOLHA SEU POKÉMON</h2>
+
+                <p>Escolha um Pokémon para continuar a batalha.</p>
+
+                <button
+                    type="button"
+                    id="botao-voltar-batalha"
+                    hidden
+                >
+                    VOLTAR À BATALHA
+                </button>
+
+                <div class="lista-troca">
+
+                    <?php foreach ($pokemonsSelecionados as $pokemon): ?>
+
+                        <?php
+                            $hpTroca = (int) (
+                                $pokemon["hp_atual"]
+                                ?? $pokemon["hp_atual_exibicao"]
+                                ?? 0
+                            );
+
+                            $derrotado = $hpTroca <= 0;
+                        ?>
+
+                        <button
+                            type="button"
+                            class="cartao-troca <?= $derrotado ? 'pokemon-derrotado' : '' ?>"
+                            data-id-pokemon="<?= (int) $pokemon["id_pokemon"] ?>"
+                            <?= $derrotado ? 'disabled' : '' ?>
+                        >
+
+                            <img
+                                src="<?= htmlspecialchars(
+                                    $pokemon["imagem"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>"
+                                alt="<?= htmlspecialchars(
+                                    $pokemon["nome"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>"
+                            >
+
+                            <div>
+
+                                <h3>
+                                    <?= htmlspecialchars(
+                                        $pokemon["nome"],
+                                        ENT_QUOTES,
+                                        "UTF-8"
+                                    ) ?>
+                                </h3>
+
+                                <p>
+                                    Nv. <?= (int) $pokemon["nivel"] ?>
+                                </p>
+
+                                <p data-texto-hp-modal="<?= (int) $pokemon["id_pokemon"] ?>">
+                                    HP: <?= $hpTroca ?> /
+                                    <?= (int) $pokemon["hp_maximo"] ?>
+                                </p>
+
+                            </div>
+
+                        </button>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            </div>
+
+        </div>
+                   <!-- JANELA DE RESULTADO DA BATALHA -->
+        <div class="modal-resultado" id="modal-resultado" hidden>
+
+            <div class="conteudo-modal-resultado">
+
+                <h2 id="titulo-resultado"></h2>
+
+                <p id="mensagem-resultado"></p>
+
+                <div class="recompensa-dinheiro">
+                    <h3>POKÉDOLLARS</h3>
+                    <p id="valor-recompensa"></p>
+                </div>
+
+                <div class="recompensa-xp">
+
+                    <h3>EXPERIÊNCIA DOS POKÉMON</h3>
+
+                    <div id="lista-recompensas-xp"></div>
+
+                </div>
+
+                <button type="button" id="botao-continuar">
+                    CONTINUAR
+                </button>
+
+            </div>
+
+        </div>             
     </main>
 
     <script src="../../../../public/js/batalha.js"></script>
