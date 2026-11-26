@@ -96,15 +96,55 @@ class PokemonDAO
     }
 
     private const INICIAIS_TEAM_BUILDER = [
-        "bulbasaur", "charmander", "squirtle", "caterpie", "weedle",
-        "pidgey", "rattata", "spearow", "ekans", "pikachu", "sandshrew",
-        "nidoran-f", "nidoran-m", "clefairy", "vulpix", "jigglypuff",
-        "zubat", "oddish", "paras", "venonat", "diglett", "meowth",
-        "psyduck", "mankey", "poliwag", "abra", "machop", "bellsprout",
-        "tentacool", "geodude", "slowpoke", "magnemite", "doduo",
-        "seel", "grimer", "shellder", "gastly", "drowzee", "krabby",
-        "voltorb", "exeggcute", "cubone", "koffing", "rhyhorn",
-        "horsea", "goldeen", "staryu", "magikarp", "eevee"
+        "bulbasaur",
+        "charmander",
+        "squirtle",
+        "caterpie",
+        "weedle",
+        "pidgey",
+        "rattata",
+        "spearow",
+        "ekans",
+        "pikachu",
+        "sandshrew",
+        "nidoran-f",
+        "nidoran-m",
+        "clefairy",
+        "vulpix",
+        "jigglypuff",
+        "zubat",
+        "oddish",
+        "paras",
+        "venonat",
+        "diglett",
+        "meowth",
+        "psyduck",
+        "mankey",
+        "poliwag",
+        "abra",
+        "machop",
+        "bellsprout",
+        "tentacool",
+        "geodude",
+        "slowpoke",
+        "magnemite",
+        "doduo",
+        "seel",
+        "grimer",
+        "shellder",
+        "gastly",
+        "drowzee",
+        "krabby",
+        "voltorb",
+        "exeggcute",
+        "cubone",
+        "koffing",
+        "rhyhorn",
+        "horsea",
+        "goldeen",
+        "staryu",
+        "magikarp",
+        "eevee"
     ];
 
     public function listarTeamBuilder()
@@ -114,16 +154,37 @@ class PokemonDAO
         }));
     }
 
+
     public function listarLoja()
     {
-        $regras = require __DIR__ . "/../models/regrasEvolucao.php";
-        $formasEvoluidas = array_fill_keys(array_column($regras, 1), true);
-        $catalogo = array_values(array_filter($this->listarTodos(), static function ($pokemon) use ($formasEvoluidas) {
-            return !isset($formasEvoluidas[strtolower($pokemon["nome"])]);
-        }));
+        // Busca os Pokémon que são resultado de evoluções
+        $sql = "SELECT id_pokemon_evolucao
+            FROM evolucao";
+
+        $stmt = $this->conexao->prepare($sql);
+        $stmt->execute();
+
+        $formasEvoluidas = array_fill_keys(
+            $stmt->fetchAll(PDO::FETCH_COLUMN),
+            true
+        );
+
+        // Remove da loja as formas evoluídas
+        $catalogo = array_values(array_filter(
+            $this->listarTodos(),
+            static function ($pokemon) use ($formasEvoluidas) {
+
+                return !isset(
+                    $formasEvoluidas[(int) $pokemon["id_pokemon"]]
+                );
+            }
+        ));
+
+        // Calcula o preço de cada Pokémon
         foreach ($catalogo as &$pokemon) {
             $pokemon["preco_pokemon"] = $this->calcularPrecoLoja($pokemon);
         }
+
         unset($pokemon);
 
         return $catalogo;
@@ -259,40 +320,37 @@ class PokemonDAO
             $stmtExcluirTipos->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
             $stmtExcluirTipos->execute();
 
+
             // Salva os tipos e associa ao Pokémon
             foreach ($dados["tipos"] as $nomeTipo) {
-                $sql = "SELECT id_tipo
-                        FROM tipo
-                        WHERE nome = :nome";
 
-                $stmt = $this->conexao->prepare($sql);
-                $stmt->bindValue(":nome", $nomeTipo);
-                $stmt->execute();
-
-                $idTipo = $stmt->fetchColumn();
-
-                if (!$idTipo) {
-                    $sql = "INSERT INTO tipo (nome)
-                            VALUES (:nome)";
-
-                    $stmt = $this->conexao->prepare($sql);
-                    $stmt->bindValue(":nome", $nomeTipo);
-                    $stmt->execute();
-
-                    $idTipo = $this->conexao->lastInsertId();
-                }
+                $idTipo = $this->obterOuCriarTipo($nomeTipo);
 
                 $sql = "INSERT IGNORE INTO pokemon_tipo (
-                            id_pokemon, id_tipo
-                        ) VALUES (
-                            :id_pokemon, :id_tipo
-                        )";
+                id_pokemon,
+                id_tipo
+            ) VALUES (
+                :id_pokemon,
+                :id_tipo
+            )";
 
                 $stmt = $this->conexao->prepare($sql);
-                $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
-                $stmt->bindValue(":id_tipo", $idTipo, PDO::PARAM_INT);
+
+                $stmt->bindValue(
+                    ":id_pokemon",
+                    $idPokemon,
+                    PDO::PARAM_INT
+                );
+
+                $stmt->bindValue(
+                    ":id_tipo",
+                    $idTipo,
+                    PDO::PARAM_INT
+                );
+
                 $stmt->execute();
             }
+
 
             // Salva os ataques e associa ao Pokémon
             $this->salvarAtaquesDoPokemon(
@@ -303,7 +361,6 @@ class PokemonDAO
             $this->conexao->commit();
 
             return true;
-
         } catch (Throwable $e) {
             if ($this->conexao->inTransaction()) {
                 $this->conexao->rollBack();
@@ -393,7 +450,6 @@ class PokemonDAO
                 $stmt = $this->conexao->prepare($sql);
 
                 $stmt->bindValue(":id_ataque", $idAtaque, PDO::PARAM_INT);
-
             } else {
 
                 // Cadastra um novo ataque

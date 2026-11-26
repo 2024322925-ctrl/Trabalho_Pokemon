@@ -43,8 +43,10 @@ class PokemonDesbloqueioDAO
             );
             $stmt->execute([$time, $usuario]);
             $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if (count($ids) !== 3 - count($membros) ||
-                array_intersect($ids, array_column($membros, "id_pokemon"))) {
+            if (
+                count($ids) !== 3 - count($membros) ||
+                array_intersect($ids, array_column($membros, "id_pokemon"))
+            ) {
                 throw new DomainException("Complete o time com exatamente três Pokémon distintos.");
             }
 
@@ -103,37 +105,95 @@ class PokemonDesbloqueioDAO
         }
     }
 
+
     public function comprar($usuario, $id, int $preco)
     {
-        $this->con->beginTransaction();
-        try {
-            $stmt = $this->con->prepare("SELECT id_usuario FROM usuario WHERE id_usuario = ? FOR UPDATE");
-            $stmt->execute([$usuario]);
-            if (!$stmt->fetchColumn()) {
-                throw new DomainException("Conta inválida.");
-            }
+        $usuario = filter_var($usuario, FILTER_VALIDATE_INT);
+        $id = filter_var($id, FILTER_VALIDATE_INT);
 
-            $estado = $this->estado($usuario);
-            if (!$estado["escolheu_iniciais"]) {
-                throw new DomainException("Escolha seus três iniciais no Team Builder primeiro.");
-            }
-            if (in_array($id, $estado["desbloqueados"], true)) {
-                throw new DomainException("Esse Pokémon já está desbloqueado.");
+        if (
+            $usuario === false ||
+            $id === false ||
+            $usuario <= 0 ||
+            $id <= 0 ||
+            $preco <= 0
+        ) {
+            throw new InvalidArgumentException("Dados da compra inválidos.");
+        }
+
+        try {
+            $this->con->beginTransaction();
+
+            $stmt = $this->con->prepare(
+                "SELECT saldo FROM carteira
+             WHERE id_usuario = ? FOR UPDATE"
+            );
+            $stmt->execute([$usuario]);
+
+            $saldo = $stmt->fetchColumn();
+
+            if ($saldo === false) {
+                throw new DomainException("Carteira não encontrada.");
             }
 
             $stmt = $this->con->prepare(
-                "UPDATE carteira SET saldo = saldo - ? WHERE id_usuario = ? AND saldo >= ?"
+                "SELECT id_pokemon FROM pokemon
+             WHERE id_pokemon = ? AND ativo = 1"
             );
-            $stmt->execute([$preco, $usuario, $preco]);
-            if ($stmt->rowCount() !== 1) {
-                throw new DomainException("Saldo insuficiente.");
+            $stmt->execute([$id]);
+
+            if (!$stmt->fetchColumn()) {
+                throw new DomainException("Pokémon não encontrado ou indisponível.");
             }
 
-            $stmt = $this->con->prepare("INSERT INTO pokemon_desbloqueado (id_usuario, id_pokemon) VALUES (?, ?)");
+            $stmt = $this->con->prepare(
+                "SELECT 1 FROM pokemon_desbloqueado
+             WHERE id_usuario = ? AND id_pokemon = ?"
+            );
             $stmt->execute([$usuario, $id]);
+
+            if ($stmt->fetchColumn()) {
+                throw new DomainException("Você já possui esse Pokémon.");
+            }
+
+            if ((float) $saldo < $preco) {
+                throw new DomainException("Saldo insuficiente para comprar este Pokémon.");
+            }
+
+            $stmt = $this->con->prepare(
+                "UPDATE carteira
+             SET saldo = saldo - :valor_desconto
+             WHERE id_usuario = :id_usuario
+             AND saldo >= :saldo_minimo"
+            );
+
+            $stmt->execute([
+                ":valor_desconto" => $preco,
+                ":id_usuario" => $usuario,
+                ":saldo_minimo" => $preco
+            ]);
+
+            if ($stmt->rowCount() !== 1) {
+                throw new DomainException("Não foi possível descontar o saldo.");
+            }
+
+            $stmt = $this->con->prepare(
+                "INSERT INTO pokemon_desbloqueado
+             (id_usuario, id_pokemon)
+             VALUES (?, ?)"
+            );
+
+            $stmt->execute([$usuario, $id]);
+
             $this->con->commit();
+
+            return true;
         } catch (Throwable $erro) {
-            $this->con->rollBack();
+
+            if ($this->con->inTransaction()) {
+                $this->con->rollBack();
+            }
+
             throw $erro;
         }
     }
