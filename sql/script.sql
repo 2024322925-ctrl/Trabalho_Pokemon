@@ -379,39 +379,6 @@ ALTER TABLE fase
 ADD COLUMN recompensa_vitoria INT NOT NULL DEFAULT 0,
 ADD COLUMN xp_recompensa INT NOT NULL DEFAULT 0;
 
-UPDATE fase
-SET recompensa_vitoria = 100, xp_recompensa = 50
-WHERE id_fase = 1;
-
-UPDATE fase
-SET recompensa_vitoria = 140, xp_recompensa = 80
-WHERE id_fase = 2;
-
-UPDATE fase
-SET recompensa_vitoria = 196, xp_recompensa = 120
-WHERE id_fase = 3;
-
-UPDATE fase
-SET recompensa_vitoria = 274, xp_recompensa = 180
-WHERE id_fase = 4;
-
-UPDATE fase
-SET recompensa_vitoria = 384, xp_recompensa = 260
-WHERE id_fase = 5;
-
-UPDATE fase
-SET recompensa_vitoria = 537, xp_recompensa = 360
-WHERE id_fase = 6;
-
-UPDATE fase
-SET recompensa_vitoria = 751, xp_recompensa = 500
-WHERE id_fase = 7;
-
-UPDATE fase
-SET recompensa_vitoria = 1051, xp_recompensa = 700
-WHERE id_fase = 8;
-
-
 ALTER TABLE log_batalha
 ADD COLUMN chave_batalha CHAR(36) NULL,
 ADD UNIQUE KEY uq_chave_batalha (chave_batalha);

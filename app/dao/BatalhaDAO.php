@@ -669,8 +669,8 @@ public function finalizarBatalha(
 
         // Atualiza o saldo da carteira
         $sqlAtualizarCarteira = "UPDATE carteira
-                                 SET saldo = saldo + :recompensa
-                                 WHERE id_usuario = :id_usuario";
+        SET saldo = LEAST(saldo + :recompensa, 99999999.99)
+         WHERE id_usuario = :id_usuario";
 
         $stmtCarteira = $this->conexao->prepare($sqlAtualizarCarteira);
 
@@ -770,6 +770,7 @@ public function finalizarBatalha(
         ];
 
     } catch (PDOException $e) {
+        error_log("Falha ao finalizar batalha: " . $e->getMessage());
 
         if ($this->conexao->inTransaction()) {
             $this->conexao->rollBack();
@@ -790,6 +791,7 @@ public function finalizarBatalha(
             }
 
         } catch (PDOException $erro) {
+            error_log("Falha ao consultar finalização: " . $erro->getMessage());
             return false;
         }
 
