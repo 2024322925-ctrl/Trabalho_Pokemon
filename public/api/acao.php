@@ -1,4 +1,3 @@
-
 <?php
 
 session_start();
@@ -107,6 +106,7 @@ $usarItem = $idItem !== null
     && $idItem > 0;
 
 // Se não for troca, precisa ser um ataque válido
+if (!$trocaVoluntaria && (!$idAtaque || $idAtaque <= 0)) {
 if (
     !$trocaVoluntaria &&
     !$usarItem &&
@@ -114,6 +114,7 @@ if (
 ) {
     echo json_encode([
         "sucesso" => false,
+        "mensagem" => "Ataque ou Pokémon inválido."
         "mensagem" => "Ação inválida."
     ], JSON_UNESCAPED_UNICODE);
     exit;
@@ -379,6 +380,7 @@ if ($hpAtacante <= 0 || $hpAdversario <= 0) {
     exit;
 }
 
+// Valida o ataque somente quando a ação não for uma troca
 // Aplica o efeito do item escolhido
 $mensagemItem = null;
 
@@ -456,6 +458,7 @@ if ($usarItem) {
 // Valida o ataque somente quando a ação não for uma troca ou uso de item
 $ataqueJogador = null;
 
+if (!$trocaVoluntaria) {
 if (!$trocaVoluntaria && !$usarItem) {
 
     $ataqueJogador = $batalhaController->validarAtaque(
@@ -512,6 +515,7 @@ $jaAgiram = [
 ];
 
 // Na troca voluntária, o jogador já utilizou sua ação
+if ($trocaVoluntaria) {
 if ($trocaVoluntaria || $usarItem) {
     $jaAgiram["jogador"] = true;
 }
@@ -725,6 +729,7 @@ $executarAtaqueDoTurno = function (
 };
 
 // Executa o turno conforme a ação escolhida
+if ($trocaVoluntaria) {
 if ($trocaVoluntaria || $usarItem) {
 
     // A troca consome a ação do jogador.
