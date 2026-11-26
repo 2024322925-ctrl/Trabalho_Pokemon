@@ -1,4 +1,3 @@
-
 <?php
 
 session_start();
@@ -32,7 +31,10 @@ $mostrarItens = ($_GET["setor"] ?? "") === "itens";
 <body>
 
     <a href="../home/index.php" class="botao-voltar">
-        Voltar ao início
+        <div class="icone-menu">
+            <img src="../../../public/imagens/pikachu.png" alt="Pikachu">
+        </div>
+        Voltar ao<br>início
     </a>
 
     <main class="loja">
@@ -47,20 +49,20 @@ $mostrarItens = ($_GET["setor"] ?? "") === "itens";
         </header>
 
         <nav class="setores-loja" aria-label="Setores da loja">
-            <a href="?setor=pokemon"<?= $mostrarItens ? "" : ' aria-current="page"' ?>>Pokémon</a>
-            <a href="?setor=itens"<?= $mostrarItens ? ' aria-current="page"' : "" ?>>Itens</a>
+            <a href="?setor=pokemon" <?= $mostrarItens ? "" : ' aria-current="page"' ?>>Pokémon</a>
+            <a href="?setor=itens" <?= $mostrarItens ? ' aria-current="page"' : "" ?>>Itens</a>
         </nav>
 
         <section class="conteudo-loja">
 
             <div id="mensagem-loja" role="status"></div>
 
-            <section class="painel-itens" id="setor-pokemons"<?= $mostrarItens ? " hidden" : "" ?>>
+            <section class="painel-itens" id="setor-pokemons" <?= $mostrarItens ? " hidden" : "" ?>>
                 <h2>Pokémon para desbloquear</h2>
                 <div id="lista-pokemons-loja" class="lista-itens"></div>
             </section>
 
-            <section class="painel-itens" id="setor-itens"<?= $mostrarItens ? "" : " hidden" ?>>
+            <section class="painel-itens" id="setor-itens" <?= $mostrarItens ? "" : " hidden" ?>>
 
                 <h2>Itens disponíveis</h2>
 
@@ -77,4 +79,5 @@ $mostrarItens = ($_GET["setor"] ?? "") === "itens";
     <script src="../../../public/js/loja.js"></script>
 
 </body>
+
 </html>

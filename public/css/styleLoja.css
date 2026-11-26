@@ -1,4 +1,3 @@
-
 /* CONFIGURAÇÕES GERAIS */
 
 * {
@@ -38,13 +37,15 @@ body {
 
 /* BOTÃO VOLTAR */
 
+/* BOTÃO VOLTAR AO INÍCIO */
+
 .botao-voltar {
     position: fixed;
     top: 20px;
     left: 20px;
 
-    width: 240px;
-    height: 75px;
+    width: 180px;
+    height: 67px;
 
     background: #3c7397;
     border: 3px solid #5ce5e8;
@@ -65,10 +66,24 @@ body {
     transition: 0.2s;
     z-index: 10;
 
-    font-size: 22px;
+    text-align: center;
+    font-size: 14px;
     font-weight: bold;
+    line-height: 1;
+
     text-shadow: 2px 2px #28556f;
 }
+
+/* IMAGEM DO PIKACHU */
+
+.botao-voltar .icone-menu img {
+    width: 50px;
+    height: auto;
+    display: block;
+    margin-right: 17px;
+}
+
+/* EFEITO AO PASSAR O MOUSE */
 
 .botao-voltar:hover {
     transform: translateY(-4px);
@@ -77,6 +92,8 @@ body {
         0 11px 0 #28556f,
         0 14px 20px rgba(0, 0, 0, 0.35);
 }
+
+/* EFEITO AO CLICAR */
 
 .botao-voltar:active {
     transform: translateY(3px);
@@ -241,6 +258,16 @@ body {
     font-size: 17px;
     font-weight: bold;
     color: #28556f;
+
+    margin-top: auto;
+    min-height: 26px;
+
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    text-align: left;
 }
 
 /* CAMPO DE QUANTIDADE */
@@ -256,7 +283,6 @@ body {
     font-size: 17px;
     text-align: center;
 
-    margin-top: auto;
     flex-shrink: 0;
 }
 
@@ -287,6 +313,24 @@ body {
     cursor: pointer;
     transition: 0.2s;
     margin-top: 0;
+}
+
+/* TAMANHO DOS BOTÕES DE COMPRA */
+
+.card-item button {
+    width: 100%;
+    max-width: none;
+    height: 46px;
+
+    padding: 8px 12px;
+
+    align-self: stretch;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 17px;
 }
 
 .card-item button:hover,
@@ -416,18 +460,35 @@ body {
     margin: 5px auto 10px;
 }
 
+/* NAVEGAÇÃO ENTRE POKÉMON E ITENS */
+
 .setores-loja {
+    width: 100%;
+    max-width: 1100px;
+
+    margin: 0 auto 18px;
+    padding: 10px;
+
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+
     gap: 10px;
-    padding: 10px;
+
     background: #edf6fc;
     border: 3px solid #b9d5e9;
 }
 
 .setores-loja a {
-    display: block;
+    width: 100%;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     box-sizing: border-box;
+
     text-align: center;
     text-decoration: none;
 }
