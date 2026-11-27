@@ -15,8 +15,9 @@ class CarteiraDAO
     public function buscarSaldoPorUsuario($id_usuario)
     {
         $sql = "SELECT saldo
-                FROM carteira
-                WHERE id_usuario = :id_usuario";
+        FROM vw_usuario_carteira
+        WHERE id_usuario = :id_usuario
+          AND saldo IS NOT NULL";
 
         $stmt = $this->con->prepare($sql);
 

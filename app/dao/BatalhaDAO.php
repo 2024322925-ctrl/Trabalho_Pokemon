@@ -32,34 +32,30 @@ class BatalhaDAO
     public function listarPokemonsDoTime($idUsuario)
     {
         $sql = "SELECT
-                    p.id_pokemon,
-                    p.nome,
-                    p.hp,
-                    p.velocidade,
-                    p.ataque,
-                    p.defesa,
-                    p.ataque_especial,
-                    p.defesa_especial,
-                    p.imagem,
-                    p.imagem_costas,
-                    tm.id_time,
-                    tm.posicao,
-                    COALESCE(pts.hp_atual, p.hp_atual) AS hp_atual,
-                    pts.status_atual AS status_atual,
-                    COALESCE(pts.nivel, 1) AS nivel,
-                    COALESCE(pts.xp, 0) AS xp
-                FROM time_pokemon tp
-                INNER JOIN time_membro tm
-                    ON tp.id_time = tm.id_time
-                INNER JOIN pokemon p
-                    ON tm.id_pokemon = p.id_pokemon
-                LEFT JOIN pokemon_time_status pts
-                    ON pts.id_time = tm.id_time
-                    AND pts.id_pokemon = tm.id_pokemon
-                WHERE tp.id_usuario = :id_usuario
-                  AND tp.ativo = 1
-                  AND p.ativo = 1
-                ORDER BY tm.posicao";
+            v.id_pokemon,
+            v.nome_pokemon AS nome,
+            v.hp,
+            v.velocidade,
+            v.ataque,
+            v.defesa,
+            v.ataque_especial,
+            v.defesa_especial,
+            p.imagem,
+            p.imagem_costas,
+            v.id_time,
+            v.posicao,
+            v.hp_atual,
+            pts.status_atual,
+            COALESCE(pts.nivel, 1) AS nivel,
+            COALESCE(pts.xp, 0) AS xp
+        FROM vw_time_pokemon v
+        INNER JOIN pokemon p ON p.id_pokemon = v.id_pokemon
+        LEFT JOIN pokemon_time_status pts
+            ON pts.id_time = v.id_time
+            AND pts.id_pokemon = v.id_pokemon
+        WHERE v.id_usuario = :id_usuario
+          AND p.ativo = 1
+        ORDER BY v.posicao";
 
         $stmt = $this->conexao->prepare($sql);
         $stmt->bindValue(":id_usuario", $idUsuario, PDO::PARAM_INT);
@@ -129,11 +125,11 @@ class BatalhaDAO
     // Busca os tipos de um Pokémon
     public function listarTiposDoPokemon($idPokemon)
     {
-        $sql = "SELECT t.id_tipo, t.nome
-                FROM pokemon_tipo pt
-                INNER JOIN tipo t
-                    ON pt.id_tipo = t.id_tipo
-                WHERE pt.id_pokemon = :id_pokemon";
+        $sql = "SELECT t.id_tipo, v.tipo AS nome
+        FROM vw_pokemon_tipos v
+        INNER JOIN tipo t ON t.nome = v.tipo
+        WHERE v.id_pokemon = :id_pokemon
+        ORDER BY t.id_tipo";
 
         $stmt = $this->conexao->prepare($sql);
         $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
@@ -160,9 +156,9 @@ class BatalhaDAO
     }
 
 
-    
+
     // Recupera o HP máximo dos Pokémon selecionados para a batalha
-    
+
     public function recuperarHPDosPokemonsSelecionados($idTime, array $idsPokemons)
     {
         if (empty($idsPokemons)) {
@@ -242,7 +238,6 @@ class BatalhaDAO
             $this->conexao->commit();
 
             return true;
-
         } catch (PDOException $e) {
 
             if ($this->conexao->inTransaction()) {
@@ -258,200 +253,199 @@ class BatalhaDAO
     {
         return $this->recuperarHPDosPokemonsSelecionados($idTime, $idsPokemons);
     }
-    
-  
 
-public function atualizarEstadoPokemon($idTime, $idPokemon, $hpAtual, $statusAtual)
-{
-    $sql = "UPDATE pokemon_time_status
+
+
+    public function atualizarEstadoPokemon($idTime, $idPokemon, $hpAtual, $statusAtual)
+    {
+        $sql = "UPDATE pokemon_time_status
             SET hp_atual = :hp_atual,
                 status_atual = :status_atual
             WHERE id_time = :id_time
             AND id_pokemon = :id_pokemon";
 
-    $stmt = $this->conexao->prepare($sql);
+        $stmt = $this->conexao->prepare($sql);
 
-    $stmt->bindValue(":id_time", $idTime, PDO::PARAM_INT);
-    $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
-    $stmt->bindValue(":hp_atual", $hpAtual, PDO::PARAM_INT);
+        $stmt->bindValue(":id_time", $idTime, PDO::PARAM_INT);
+        $stmt->bindValue(":id_pokemon", $idPokemon, PDO::PARAM_INT);
+        $stmt->bindValue(":hp_atual", $hpAtual, PDO::PARAM_INT);
 
-    if ($statusAtual === null || $statusAtual === "") {
-        $stmt->bindValue(":status_atual", null, PDO::PARAM_NULL);
-    } else {
-        $stmt->bindValue(":status_atual", $statusAtual, PDO::PARAM_STR);
-    }
+        if ($statusAtual === null || $statusAtual === "") {
+            $stmt->bindValue(":status_atual", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(":status_atual", $statusAtual, PDO::PARAM_STR);
+        }
 
-    $stmt->execute();
+        $stmt->execute();
 
-    $sqlVerificacao = "SELECT hp_atual, status_atual
+        $sqlVerificacao = "SELECT hp_atual, status_atual
                        FROM pokemon_time_status
                        WHERE id_time = :id_time
                        AND id_pokemon = :id_pokemon";
 
-    $verificacao = $this->conexao->prepare($sqlVerificacao);
+        $verificacao = $this->conexao->prepare($sqlVerificacao);
 
-    $verificacao->execute([
-        ":id_time" => $idTime,
-        ":id_pokemon" => $idPokemon
-    ]);
+        $verificacao->execute([
+            ":id_time" => $idTime,
+            ":id_pokemon" => $idPokemon
+        ]);
 
-    $registro = $verificacao->fetch(PDO::FETCH_ASSOC);
+        $registro = $verificacao->fetch(PDO::FETCH_ASSOC);
 
-    error_log("PERSISTENCIA BATALHA: " . json_encode([
-        "id_time" => $idTime,
-        "id_pokemon" => $idPokemon,
-        "hp_enviado" => $hpAtual,
-        "status_enviado" => $statusAtual,
-        "linhas_afetadas" => $stmt->rowCount(),
-        "registro_no_banco" => $registro
-    ]));
+        error_log("PERSISTENCIA BATALHA: " . json_encode([
+            "id_time" => $idTime,
+            "id_pokemon" => $idPokemon,
+            "hp_enviado" => $hpAtual,
+            "status_enviado" => $statusAtual,
+            "linhas_afetadas" => $stmt->rowCount(),
+            "registro_no_banco" => $registro
+        ]));
 
-    return true;
-}
-
-
-
-
-    
-// Aplica XP aos Pokémon sem iniciar ou finalizar uma transação
-private function aplicarExperienciaPokemons(
-    $idTime,
-    array $idsPokemons,
-    $xpRecebido
-) {
-    $idTime = (int) $idTime;
-    $xpRecebido = (int) $xpRecebido;
-
-    if ($idTime <= 0 || $xpRecebido < 0 || empty($idsPokemons)) {
-        return false;
+        return true;
     }
 
-    $idsPokemons = array_unique(
-        array_map('intval', $idsPokemons)
-    );
 
-    $sqlBuscar = "SELECT nivel, xp
+
+
+
+    // Aplica XP aos Pokémon sem iniciar ou finalizar uma transação
+    private function aplicarExperienciaPokemons(
+        $idTime,
+        array $idsPokemons,
+        $xpRecebido
+    ) {
+        $idTime = (int) $idTime;
+        $xpRecebido = (int) $xpRecebido;
+
+        if ($idTime <= 0 || $xpRecebido < 0 || empty($idsPokemons)) {
+            return false;
+        }
+
+        $idsPokemons = array_unique(
+            array_map('intval', $idsPokemons)
+        );
+
+        $sqlBuscar = "SELECT nivel, xp
                   FROM pokemon_time_status
                   WHERE id_time = :id_time
                   AND id_pokemon = :id_pokemon
                   FOR UPDATE";
 
-    $consultaBuscar = $this->conexao->prepare($sqlBuscar);
+        $consultaBuscar = $this->conexao->prepare($sqlBuscar);
 
-    $sqlAtualizar = "UPDATE pokemon_time_status
+        $sqlAtualizar = "UPDATE pokemon_time_status
                      SET nivel = :nivel,
                          xp = :xp
                      WHERE id_time = :id_time
                      AND id_pokemon = :id_pokemon";
 
-    $consultaAtualizar = $this->conexao->prepare($sqlAtualizar);
+        $consultaAtualizar = $this->conexao->prepare($sqlAtualizar);
 
-    $resultados = [];
+        $resultados = [];
 
-    foreach ($idsPokemons as $idPokemon) {
+        foreach ($idsPokemons as $idPokemon) {
 
-        if ($idPokemon <= 0) {
-            return false;
-        }
-
-        $consultaBuscar->execute([
-            ':id_time' => $idTime,
-            ':id_pokemon' => $idPokemon
-        ]);
-
-        $pokemon = $consultaBuscar->fetch(PDO::FETCH_ASSOC);
-
-        if (!$pokemon) {
-            return false;
-        }
-
-        $nivel = (int) $pokemon["nivel"];
-        $xp = (int) $pokemon["xp"];
-
-        // Pokémon no nível máximo não recebe mais XP
-        if ($nivel >= 100) {
-            $nivel = 100;
-            $xp = 0;
-        } else {
-
-            $xp += $xpRecebido;
-
-            // Permite subir mais de um nível se houver XP suficiente
-            while ($nivel < 100 && $xp >= ($nivel * 50)) {
-
-                $xp -= ($nivel * 50);
-                $nivel++;
+            if ($idPokemon <= 0) {
+                return false;
             }
 
-            // No nível 100, o XP fica zerado
+            $consultaBuscar->execute([
+                ':id_time' => $idTime,
+                ':id_pokemon' => $idPokemon
+            ]);
+
+            $pokemon = $consultaBuscar->fetch(PDO::FETCH_ASSOC);
+
+            if (!$pokemon) {
+                return false;
+            }
+
+            $nivel = (int) $pokemon["nivel"];
+            $xp = (int) $pokemon["xp"];
+
+            // Pokémon no nível máximo não recebe mais XP
             if ($nivel >= 100) {
                 $nivel = 100;
                 $xp = 0;
+            } else {
+
+                $xp += $xpRecebido;
+
+                // Permite subir mais de um nível se houver XP suficiente
+                while ($nivel < 100 && $xp >= ($nivel * 50)) {
+
+                    $xp -= ($nivel * 50);
+                    $nivel++;
+                }
+
+                // No nível 100, o XP fica zerado
+                if ($nivel >= 100) {
+                    $nivel = 100;
+                    $xp = 0;
+                }
             }
+
+            $consultaAtualizar->execute([
+                ':nivel' => $nivel,
+                ':xp' => $xp,
+                ':id_time' => $idTime,
+                ':id_pokemon' => $idPokemon
+            ]);
+
+            $resultados[] = [
+                "id_pokemon" => $idPokemon,
+                "nivel" => $nivel,
+                "xp" => $xp
+            ];
         }
-
-        $consultaAtualizar->execute([
-            ':nivel' => $nivel,
-            ':xp' => $xp,
-            ':id_time' => $idTime,
-            ':id_pokemon' => $idPokemon
-        ]);
-
-        $resultados[] = [
-            "id_pokemon" => $idPokemon,
-            "nivel" => $nivel,
-            "xp" => $xp
-        ];
-    }
-
-    return $resultados;
-}
-
-// Concede XP utilizando uma transação própria
-public function concederExperienciaPokemons(
-    $idTime,
-    array $idsPokemons,
-    $xpRecebido
-) {
-    try {
-
-        $this->conexao->beginTransaction();
-
-        $resultados = $this->aplicarExperienciaPokemons(
-            $idTime,
-            $idsPokemons,
-            $xpRecebido
-        );
-
-        if ($resultados === false) {
-            $this->conexao->rollBack();
-            return false;
-        }
-
-        $this->conexao->commit();
 
         return $resultados;
-
-    } catch (PDOException $e) {
-
-        if ($this->conexao->inTransaction()) {
-            $this->conexao->rollBack();
-        }
-
-        return false;
     }
-}
+
+    // Concede XP utilizando uma transação própria
+    public function concederExperienciaPokemons(
+        $idTime,
+        array $idsPokemons,
+        $xpRecebido
+    ) {
+        try {
+
+            $this->conexao->beginTransaction();
+
+            $resultados = $this->aplicarExperienciaPokemons(
+                $idTime,
+                $idsPokemons,
+                $xpRecebido
+            );
+
+            if ($resultados === false) {
+                $this->conexao->rollBack();
+                return false;
+            }
+
+            $this->conexao->commit();
+
+            return $resultados;
+        } catch (PDOException $e) {
+
+            if ($this->conexao->inTransaction()) {
+                $this->conexao->rollBack();
+            }
+
+            return false;
+        }
+    }
 
 
 
     // Recupera uma batalha já finalizada pela chave única
-private function buscarFinalizacaoPorChave(
-    $idUsuario,
-    $idFase,
-    $resultado,
-    $chaveBatalha
-) {
-    $sql = "SELECT
+    private function buscarFinalizacaoPorChave(
+        $idUsuario,
+        $idFase,
+        $resultado,
+        $chaveBatalha
+    ) {
+        $sql = "SELECT
                 id_batalha,
                 id_usuario,
                 id_fase,
@@ -462,30 +456,30 @@ private function buscarFinalizacaoPorChave(
             WHERE chave_batalha = :chave_batalha
             LIMIT 1";
 
-    $stmt = $this->conexao->prepare($sql);
+        $stmt = $this->conexao->prepare($sql);
 
-    $stmt->execute([
-        ':chave_batalha' => $chaveBatalha
-    ]);
+        $stmt->execute([
+            ':chave_batalha' => $chaveBatalha
+        ]);
 
-    $batalha = $stmt->fetch(PDO::FETCH_ASSOC);
+        $batalha = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Ainda não existe registro para essa chave
-    if (!$batalha) {
-        return null;
-    }
+        // Ainda não existe registro para essa chave
+        if (!$batalha) {
+            return null;
+        }
 
-    // Confere se o registro pertence à mesma batalha
-    if (
-        (int) $batalha["id_usuario"] !== (int) $idUsuario ||
-        (int) $batalha["id_fase"] !== (int) $idFase ||
-        $batalha["resultado"] !== $resultado
-    ) {
-        return false;
-    }
+        // Confere se o registro pertence à mesma batalha
+        if (
+            (int) $batalha["id_usuario"] !== (int) $idUsuario ||
+            (int) $batalha["id_fase"] !== (int) $idFase ||
+            $batalha["resultado"] !== $resultado
+        ) {
+            return false;
+        }
 
-    // Recupera os Pokémon registrados nessa batalha
-    $sqlPokemons = "SELECT
+        // Recupera os Pokémon registrados nessa batalha
+        $sqlPokemons = "SELECT
                         lbp.id_pokemon,
                         lbp.xp_recebido,
                         pts.nivel,
@@ -503,185 +497,185 @@ private function buscarFinalizacaoPorChave(
                     WHERE lbp.id_batalha = :id_batalha_pokemon
                     ORDER BY lbp.ordem";
 
-    $stmtPokemons = $this->conexao->prepare($sqlPokemons);
+        $stmtPokemons = $this->conexao->prepare($sqlPokemons);
 
-    $stmtPokemons->execute([
-        ':id_batalha' => $batalha["id_batalha"],
-        ':id_batalha_pokemon' => $batalha["id_batalha"]
-    ]);
+        $stmtPokemons->execute([
+            ':id_batalha' => $batalha["id_batalha"],
+            ':id_batalha_pokemon' => $batalha["id_batalha"]
+        ]);
 
-    $pokemons = $stmtPokemons->fetchAll(PDO::FETCH_ASSOC);
+        $pokemons = $stmtPokemons->fetchAll(PDO::FETCH_ASSOC);
 
-    if (count($pokemons) !== 3) {
-        return false;
-    }
+        if (count($pokemons) !== 3) {
+            return false;
+        }
 
-    $resultadoPokemons = [];
+        $resultadoPokemons = [];
 
-    foreach ($pokemons as $pokemon) {
-        $resultadoPokemons[] = [
-            "id_pokemon" => (int) $pokemon["id_pokemon"],
-            "nivel" => (int) $pokemon["nivel"],
-            "xp" => (int) $pokemon["xp"]
+        foreach ($pokemons as $pokemon) {
+            $resultadoPokemons[] = [
+                "id_pokemon" => (int) $pokemon["id_pokemon"],
+                "nivel" => (int) $pokemon["nivel"],
+                "xp" => (int) $pokemon["xp"]
+            ];
+        }
+
+        return [
+            "sucesso" => true,
+            "id_batalha" => (int) $batalha["id_batalha"],
+            "resultado" => $batalha["resultado"],
+            "recompensa" => (int) $batalha["recompensa"],
+            "xp_por_pokemon" => (int) $pokemons[0]["xp_recebido"],
+            "xp_total" => (int) $batalha["xp_recebido"],
+            "pokemons" => $resultadoPokemons
         ];
     }
 
-    return [
-        "sucesso" => true,
-        "id_batalha" => (int) $batalha["id_batalha"],
-        "resultado" => $batalha["resultado"],
-        "recompensa" => (int) $batalha["recompensa"],
-        "xp_por_pokemon" => (int) $pokemons[0]["xp_recebido"],
-        "xp_total" => (int) $batalha["xp_recebido"],
-        "pokemons" => $resultadoPokemons
-    ];
-}
-
     // Finaliza uma batalha e registra todas as recompensas
     // Finaliza uma batalha e registra todas as recompensas
-public function finalizarBatalha(
-    $idUsuario,
-    $idTime,
-    $idFase,
-    $resultado,
-    array $idsPokemons,
-    $chaveBatalha
-) {
-    $idUsuario = (int) $idUsuario;
-    $idTime = (int) $idTime;
-    $idFase = (int) $idFase;
-
-    // Valida os dados recebidos
-    if (
-        $idUsuario <= 0 ||
-        $idTime <= 0 ||
-        $idFase <= 0 ||
-        !in_array($resultado, ["vitoria", "derrota"], true) ||
-        empty($chaveBatalha) ||
-        count(array_unique(array_map('intval', $idsPokemons))) !== 3
+    public function finalizarBatalha(
+        $idUsuario,
+        $idTime,
+        $idFase,
+        $resultado,
+        array $idsPokemons,
+        $chaveBatalha
     ) {
-        return false;
-    }
+        $idUsuario = (int) $idUsuario;
+        $idTime = (int) $idTime;
+        $idFase = (int) $idFase;
 
-    $idsPokemons = array_values(
-        array_unique(array_map('intval', $idsPokemons))
-    );
-
-    foreach ($idsPokemons as $idPokemon) {
-        if ($idPokemon <= 0) {
+        // Valida os dados recebidos
+        if (
+            $idUsuario <= 0 ||
+            $idTime <= 0 ||
+            $idFase <= 0 ||
+            !in_array($resultado, ["vitoria", "derrota"], true) ||
+            empty($chaveBatalha) ||
+            count(array_unique(array_map('intval', $idsPokemons))) !== 3
+        ) {
             return false;
         }
-    }
 
-    try {
-
-        // Verifica se essa batalha já foi finalizada anteriormente
-        $finalizacaoExistente = $this->buscarFinalizacaoPorChave(
-            $idUsuario,
-            $idFase,
-            $resultado,
-            $chaveBatalha
+        $idsPokemons = array_values(
+            array_unique(array_map('intval', $idsPokemons))
         );
 
-        if ($finalizacaoExistente !== null) {
-            return $finalizacaoExistente;
+        foreach ($idsPokemons as $idPokemon) {
+            if ($idPokemon <= 0) {
+                return false;
+            }
         }
 
-        $this->conexao->beginTransaction();
+        try {
 
-        // Verifica se o time pertence ao usuário e está ativo
-        $sqlTime = "SELECT id_time
+            // Verifica se essa batalha já foi finalizada anteriormente
+            $finalizacaoExistente = $this->buscarFinalizacaoPorChave(
+                $idUsuario,
+                $idFase,
+                $resultado,
+                $chaveBatalha
+            );
+
+            if ($finalizacaoExistente !== null) {
+                return $finalizacaoExistente;
+            }
+
+            $this->conexao->beginTransaction();
+
+            // Verifica se o time pertence ao usuário e está ativo
+            $sqlTime = "SELECT id_time
                     FROM time_pokemon
                     WHERE id_time = :id_time
                     AND id_usuario = :id_usuario
                     AND ativo = 1
                     FOR UPDATE";
 
-        $stmtTime = $this->conexao->prepare($sqlTime);
+            $stmtTime = $this->conexao->prepare($sqlTime);
 
-        $stmtTime->execute([
-            ':id_time' => $idTime,
-            ':id_usuario' => $idUsuario
-        ]);
+            $stmtTime->execute([
+                ':id_time' => $idTime,
+                ':id_usuario' => $idUsuario
+            ]);
 
-        if (!$stmtTime->fetch(PDO::FETCH_ASSOC)) {
-            $this->conexao->rollBack();
-            return false;
-        }
+            if (!$stmtTime->fetch(PDO::FETCH_ASSOC)) {
+                $this->conexao->rollBack();
+                return false;
+            }
 
-        // Verifica novamente se a batalha já foi registrada
-        $finalizacaoExistente = $this->buscarFinalizacaoPorChave(
-            $idUsuario,
-            $idFase,
-            $resultado,
-            $chaveBatalha
-        );
+            // Verifica novamente se a batalha já foi registrada
+            $finalizacaoExistente = $this->buscarFinalizacaoPorChave(
+                $idUsuario,
+                $idFase,
+                $resultado,
+                $chaveBatalha
+            );
 
-        if ($finalizacaoExistente !== null) {
-            $this->conexao->commit();
-            return $finalizacaoExistente;
-        }
+            if ($finalizacaoExistente !== null) {
+                $this->conexao->commit();
+                return $finalizacaoExistente;
+            }
 
-        // Busca as recompensas cadastradas na fase
-        $sqlFase = "SELECT recompensa_vitoria, xp_recompensa
+            // Busca as recompensas cadastradas na fase
+            $sqlFase = "SELECT recompensa_vitoria, xp_recompensa
                     FROM fase
                     WHERE id_fase = :id_fase";
 
-        $stmtFase = $this->conexao->prepare($sqlFase);
+            $stmtFase = $this->conexao->prepare($sqlFase);
 
-        $stmtFase->execute([
-            ':id_fase' => $idFase
-        ]);
+            $stmtFase->execute([
+                ':id_fase' => $idFase
+            ]);
 
-        $fase = $stmtFase->fetch(PDO::FETCH_ASSOC);
+            $fase = $stmtFase->fetch(PDO::FETCH_ASSOC);
 
-        if (!$fase) {
-            $this->conexao->rollBack();
-            return false;
-        }
+            if (!$fase) {
+                $this->conexao->rollBack();
+                return false;
+            }
 
-        $recompensa = (int) $fase["recompensa_vitoria"];
-        $xpPorPokemon = (int) $fase["xp_recompensa"];
+            $recompensa = (int) $fase["recompensa_vitoria"];
+            $xpPorPokemon = (int) $fase["xp_recompensa"];
 
-        // Aplica as porcentagens em caso de derrota
-        if ($resultado === "derrota") {
-            $recompensa = (int) floor($recompensa * 0.25);
-            $xpPorPokemon = (int) floor($xpPorPokemon * 0.30);
-        }
+            // Aplica as porcentagens em caso de derrota
+            if ($resultado === "derrota") {
+                $recompensa = (int) floor($recompensa * 0.25);
+                $xpPorPokemon = (int) floor($xpPorPokemon * 0.30);
+            }
 
-        // Verifica se o usuário possui carteira
-        $sqlCarteira = "SELECT id_carteira
+            // Verifica se o usuário possui carteira
+            $sqlCarteira = "SELECT id_carteira
                         FROM carteira
                         WHERE id_usuario = :id_usuario
                         FOR UPDATE";
 
-        $stmtCarteira = $this->conexao->prepare($sqlCarteira);
+            $stmtCarteira = $this->conexao->prepare($sqlCarteira);
 
-        $stmtCarteira->execute([
-            ':id_usuario' => $idUsuario
-        ]);
+            $stmtCarteira->execute([
+                ':id_usuario' => $idUsuario
+            ]);
 
-        if (!$stmtCarteira->fetch(PDO::FETCH_ASSOC)) {
-            $this->conexao->rollBack();
-            return false;
-        }
+            if (!$stmtCarteira->fetch(PDO::FETCH_ASSOC)) {
+                $this->conexao->rollBack();
+                return false;
+            }
 
-        // Atualiza o saldo da carteira
-        $sqlAtualizarCarteira = "UPDATE carteira
+            // Atualiza o saldo da carteira
+            $sqlAtualizarCarteira = "UPDATE carteira
         SET saldo = LEAST(saldo + :recompensa, 99999999.99)
          WHERE id_usuario = :id_usuario";
 
-        $stmtCarteira = $this->conexao->prepare($sqlAtualizarCarteira);
+            $stmtCarteira = $this->conexao->prepare($sqlAtualizarCarteira);
 
-        $stmtCarteira->execute([
-            ':recompensa' => $recompensa,
-            ':id_usuario' => $idUsuario
-        ]);
+            $stmtCarteira->execute([
+                ':recompensa' => $recompensa,
+                ':id_usuario' => $idUsuario
+            ]);
 
-        // Registra a batalha no histórico
-        $xpTotal = $xpPorPokemon * 3;
+            // Registra a batalha no histórico
+            $xpTotal = $xpPorPokemon * 3;
 
-        $sqlLog = "INSERT INTO log_batalha
+            $sqlLog = "INSERT INTO log_batalha
                     (
                         id_usuario,
                         id_fase,
@@ -702,21 +696,21 @@ public function finalizarBatalha(
                         :chave_batalha
                     )";
 
-        $stmtLog = $this->conexao->prepare($sqlLog);
+            $stmtLog = $this->conexao->prepare($sqlLog);
 
-        $stmtLog->execute([
-            ':id_usuario' => $idUsuario,
-            ':id_fase' => $idFase,
-            ':resultado' => $resultado,
-            ':recompensa' => $recompensa,
-            ':xp_recebido' => $xpTotal,
-            ':chave_batalha' => $chaveBatalha
-        ]);
+            $stmtLog->execute([
+                ':id_usuario' => $idUsuario,
+                ':id_fase' => $idFase,
+                ':resultado' => $resultado,
+                ':recompensa' => $recompensa,
+                ':xp_recebido' => $xpTotal,
+                ':chave_batalha' => $chaveBatalha
+            ]);
 
-        $idBatalha = (int) $this->conexao->lastInsertId();
+            $idBatalha = (int) $this->conexao->lastInsertId();
 
-        // Registra os três Pokémon no histórico
-        $sqlLogPokemon = "INSERT INTO log_batalha_pokemon
+            // Registra os três Pokémon no histórico
+            $sqlLogPokemon = "INSERT INTO log_batalha_pokemon
                             (
                                 id_batalha,
                                 id_pokemon,
@@ -731,103 +725,94 @@ public function finalizarBatalha(
                                 :xp_recebido
                             )";
 
-        $stmtLogPokemon = $this->conexao->prepare($sqlLogPokemon);
+            $stmtLogPokemon = $this->conexao->prepare($sqlLogPokemon);
 
-        foreach ($idsPokemons as $indice => $idPokemon) {
+            foreach ($idsPokemons as $indice => $idPokemon) {
 
-            $stmtLogPokemon->execute([
-                ':id_batalha' => $idBatalha,
-                ':id_pokemon' => $idPokemon,
-                ':ordem' => $indice + 1,
-                ':xp_recebido' => $xpPorPokemon
-            ]);
-        }
+                $stmtLogPokemon->execute([
+                    ':id_batalha' => $idBatalha,
+                    ':id_pokemon' => $idPokemon,
+                    ':ordem' => $indice + 1,
+                    ':xp_recebido' => $xpPorPokemon
+                ]);
+            }
 
-        // Concede XP individualmente aos três Pokémon
-        $resultadoXP = $this->aplicarExperienciaPokemons(
-            $idTime,
-            $idsPokemons,
-            $xpPorPokemon
-        );
+            // Concede XP individualmente aos três Pokémon
+            $resultadoXP = $this->aplicarExperienciaPokemons(
+                $idTime,
+                $idsPokemons,
+                $xpPorPokemon
+            );
 
-        if ($resultadoXP === false) {
-            $this->conexao->rollBack();
-            return false;
-        }
+            if ($resultadoXP === false) {
+                $this->conexao->rollBack();
+                return false;
+            }
 
-        // Registra a conclusão e libera a próxima fase somente na vitória.
-        if ($resultado === "vitoria") {
-            $stmtConclusao = $this->conexao->prepare(
-                "INSERT INTO usuario_fase_concluida (id_usuario, id_fase)
+            // Registra a conclusão e libera a próxima fase somente na vitória.
+            if ($resultado === "vitoria") {
+                $stmtConclusao = $this->conexao->prepare(
+                    "INSERT INTO usuario_fase_concluida (id_usuario, id_fase)
                  VALUES (:usuario, :fase)
                  ON DUPLICATE KEY UPDATE id_fase = id_fase"
-            );
-            $stmtConclusao->execute([
-                ':usuario' => $idUsuario,
-                ':fase' => $idFase
-            ]);
+                );
+                $stmtConclusao->execute([
+                    ':usuario' => $idUsuario,
+                    ':fase' => $idFase
+                ]);
 
-            $stmtProgresso = $this->conexao->prepare(
-                "INSERT INTO progresso_usuario (id_usuario, maior_fase_desbloqueada)
+                $stmtProgresso = $this->conexao->prepare(
+                    "INSERT INTO progresso_usuario (id_usuario, maior_fase_desbloqueada)
                  VALUES (:usuario, :proxima)
                  ON DUPLICATE KEY UPDATE maior_fase_desbloqueada =
                     GREATEST(maior_fase_desbloqueada, :proxima_atualizacao)"
-            );
-            $proximaFase = min(8, $idFase + 1);
-            $stmtProgresso->execute([
-                ':usuario' => $idUsuario,
-                ':proxima' => $proximaFase,
-                ':proxima_atualizacao' => $proximaFase
-            ]);
-        }
-
-        // Confirma todas as operações
-        $this->conexao->commit();
-
-        return [
-            "sucesso" => true,
-            "id_batalha" => $idBatalha,
-            "resultado" => $resultado,
-            "recompensa" => $recompensa,
-            "xp_por_pokemon" => $xpPorPokemon,
-            "xp_total" => $xpTotal,
-            "pokemons" => $resultadoXP
-        ];
-
-    } catch (PDOException $e) {
-        error_log("Falha ao finalizar batalha: " . $e->getMessage());
-
-        if ($this->conexao->inTransaction()) {
-            $this->conexao->rollBack();
-        }
-
-        // Verifica se a falha ocorreu porque a batalha já foi registrada
-        try {
-
-            $finalizacaoExistente = $this->buscarFinalizacaoPorChave(
-                $idUsuario,
-                $idFase,
-                $resultado,
-                $chaveBatalha
-            );
-
-            if ($finalizacaoExistente !== null) {
-                return $finalizacaoExistente;
+                );
+                $proximaFase = min(8, $idFase + 1);
+                $stmtProgresso->execute([
+                    ':usuario' => $idUsuario,
+                    ':proxima' => $proximaFase,
+                    ':proxima_atualizacao' => $proximaFase
+                ]);
             }
 
-        } catch (PDOException $erro) {
-            error_log("Falha ao consultar finalização: " . $erro->getMessage());
+            // Confirma todas as operações
+            $this->conexao->commit();
+
+            return [
+                "sucesso" => true,
+                "id_batalha" => $idBatalha,
+                "resultado" => $resultado,
+                "recompensa" => $recompensa,
+                "xp_por_pokemon" => $xpPorPokemon,
+                "xp_total" => $xpTotal,
+                "pokemons" => $resultadoXP
+            ];
+        } catch (PDOException $e) {
+            error_log("Falha ao finalizar batalha: " . $e->getMessage());
+
+            if ($this->conexao->inTransaction()) {
+                $this->conexao->rollBack();
+            }
+
+            // Verifica se a falha ocorreu porque a batalha já foi registrada
+            try {
+
+                $finalizacaoExistente = $this->buscarFinalizacaoPorChave(
+                    $idUsuario,
+                    $idFase,
+                    $resultado,
+                    $chaveBatalha
+                );
+
+                if ($finalizacaoExistente !== null) {
+                    return $finalizacaoExistente;
+                }
+            } catch (PDOException $erro) {
+                error_log("Falha ao consultar finalização: " . $erro->getMessage());
+                return false;
+            }
+
             return false;
         }
-
-        return false;
     }
 }
-
-
-
-    
-
-}
-
-?>

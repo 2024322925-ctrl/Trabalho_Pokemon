@@ -14,6 +14,8 @@ $sobrenome = $_SESSION["sobrenome"];
 
 
 
+
+
 // Busca o time ativo do usuário
 $timeController = new TimePokemonController();
 $time = $timeController->buscarTimeAtivo($_SESSION["id_usuario"]);

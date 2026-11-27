@@ -48,6 +48,9 @@ class UsuarioController
         return false;
     }
 
+
+    
+
     public function sair()
     {
         if (session_status() === PHP_SESSION_NONE) {
