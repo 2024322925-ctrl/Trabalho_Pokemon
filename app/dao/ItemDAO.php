@@ -45,6 +45,7 @@ class ItemDAO
         return $stmt->execute();
     }
 
+
 public function listarItensDeBatalha($id_usuario)
 {
     $sql = "SELECT
@@ -60,7 +61,7 @@ public function listarItensDeBatalha($id_usuario)
             WHERE inv.id_usuario = :id_usuario
             AND inv.quantidade > 0
             AND i.disponivel = 1
-            AND i.id_item IN (1, 2, 3, 4, 5)
+            AND i.tipo IN ('hp', 'status', 'reviver')
             ORDER BY i.id_item";
 
     $stmt = $this->con->prepare($sql);
@@ -71,6 +72,8 @@ public function listarItensDeBatalha($id_usuario)
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+
 
 public function buscarItemDeBatalha($id_usuario, $id_item)
 {
@@ -85,7 +88,7 @@ public function buscarItemDeBatalha($id_usuario, $id_item)
                 ON i.id_item = inv.id_item
             WHERE inv.id_usuario = :id_usuario
             AND i.id_item = :id_item
-            AND i.id_item IN (1, 2, 3, 4, 5)
+            AND i.tipo IN ('hp', 'status', 'reviver')
             AND i.disponivel = 1
             AND inv.quantidade > 0
             LIMIT 1";
@@ -99,6 +102,7 @@ public function buscarItemDeBatalha($id_usuario, $id_item)
 
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
 
 public function consumirItem($id_usuario, $id_item)
 {

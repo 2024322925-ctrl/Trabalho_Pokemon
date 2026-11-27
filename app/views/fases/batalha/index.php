@@ -45,6 +45,9 @@ $idUsuario = (int) $_SESSION["id_usuario"];
 $idTime = (int) $_SESSION["preparacao_batalha"]["id_time"];
 $idFase = (int) $_SESSION["preparacao_batalha"]["id_fase"];
 
+// Define a imagem do ginásio conforme a fase
+$imagemGinasio = "../../../../public/imagens/ginasio" . $idFase . ".jpg";
+
 // Busca os itens disponíveis para uso durante a batalha
 $itensBatalha = $itemController->listarItensDeBatalha($idUsuario);
 
@@ -146,7 +149,17 @@ $posicoesPokemon = [
     <main class="container-batalha">
 
         <!-- PARTE SUPERIOR: ARENA -->
-        <section class="arena-batalha">
+        <section
+            class="arena-batalha"
+            style="
+                background-image:
+                    linear-gradient(
+                        rgba(60, 115, 151, 0.18),
+                        rgba(60, 115, 151, 0.18)
+                    ),
+                    url('<?= htmlspecialchars($imagemGinasio, ENT_QUOTES, "UTF-8") ?>');
+            "
+        >
 
             <!-- STATUS DO JOGADOR -->
             <div
@@ -406,60 +419,81 @@ $posicoesPokemon = [
                 </div>
 
                 <!-- MENU DE ITENS -->
+                
+                <!-- JANELA DE ITENS -->
                 <div class="menu-itens" id="menu-itens" hidden>
 
-                    <?php if (!empty($itensBatalha)): ?>
+                    <div class="conteudo-modal-itens">
 
-                        <?php foreach ($itensBatalha as $item): ?>
+                        <h2>ITENS</h2>
 
-                            <button
-                                type="button"
-                                class="botao-item"
-                                data-id-item="<?= (int) $item["id_item"] ?>"
-                            >
+                        <div class="lista-itens">
 
-                                <?php if (!empty($item["imagem_item"])): ?>
-                                    <img
-                                        src="<?= htmlspecialchars(
-                                            $item["imagem_item"],
-                                            ENT_QUOTES,
-                                            "UTF-8"
-                                        ) ?>"
-                                        alt="<?= htmlspecialchars(
-                                            $item["nome"],
-                                            ENT_QUOTES,
-                                            "UTF-8"
-                                        ) ?>"
-                                    >
-                                <?php endif; ?>
+                            <?php if (!empty($itensBatalha)): ?>
 
-                                <span>
-                                    <?= htmlspecialchars(
-                                        $item["nome"],
-                                        ENT_QUOTES,
-                                        "UTF-8"
-                                    ) ?>
-                                </span>
+                                <?php foreach ($itensBatalha as $item): ?>
 
-                                <span>
-                                    x<?= (int) $item["quantidade"] ?>
-                                </span>
+                                    <div class="cartao-item">
 
-                            </button>
+                                        <?php if (!empty($item["imagem_item"])): ?>
+                                            <img
+                                                src="<?= htmlspecialchars(
+                                                    $item["imagem_item"],
+                                                    ENT_QUOTES,
+                                                    "UTF-8"
+                                                ) ?>"
+                                                alt="<?= htmlspecialchars(
+                                                    $item["nome"],
+                                                    ENT_QUOTES,
+                                                    "UTF-8"
+                                                ) ?>"
+                                            >
+                                        <?php endif; ?>
 
-                        <?php endforeach; ?>
+                                        <div class="dados-item">
 
-                    <?php else: ?>
+                                            <h3>
+                                                <?= htmlspecialchars(
+                                                    $item["nome"],
+                                                    ENT_QUOTES,
+                                                    "UTF-8"
+                                                ) ?>
+                                            </h3>
 
-                        <p>Você não possui itens de cura.</p>
+                                            <p>
+                                                Quantidade: x<?= (int) $item["quantidade"] ?>
+                                            </p>
 
-                    <?php endif; ?>
+                                        </div>
 
-                    <button type="button" id="botao-voltar-itens">
-                        VOLTAR
-                    </button>
+                                        <button
+                                            type="button"
+                                            class="botao-usar-item"
+                                            data-id-item="<?= (int) $item["id_item"] ?>"
+                                        >
+                                            USAR
+                                        </button>
+
+                                    </div>
+
+                                <?php endforeach; ?>
+
+                            <?php else: ?>
+
+                                <p>Você não possui itens de cura.</p>
+
+                            <?php endif; ?>
+
+                        </div>
+
+                        <button type="button" id="botao-voltar-itens">
+                            VOLTAR
+                        </button>
+
+                    </div>
 
                 </div>
+
 
             </div>
 
@@ -547,6 +581,29 @@ $posicoesPokemon = [
                     <?php endforeach; ?>
 
                 </div>
+
+            </div>
+
+        </div>
+        
+        <!-- JANELA DE SELEÇÃO DO REVIVE -->
+        <div class="modal-troca" id="modal-revive" hidden>
+
+            <div class="conteudo-modal-troca">
+
+                <h2>ESCOLHA UM POKÉMON</h2>
+
+                <p>Selecione um Pokémon derrotado para reviver.</p>
+
+                <div class="lista-troca" id="lista-revive">
+
+                    <!-- Os Pokémon disponíveis serão adicionados pelo JavaScript -->
+
+                </div>
+
+                <button type="button" id="botao-voltar-revive">
+                    VOLTAR
+                </button>
 
             </div>
 

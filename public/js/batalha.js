@@ -15,7 +15,7 @@ const botaoVoltarItens = document.getElementById("botao-voltar-itens");
 
 const botoesAtaque = document.querySelectorAll(".botao-ataque");
 
-const botoesItem = document.querySelectorAll(".botao-item");
+const botoesItem = document.querySelectorAll(".botao-usar-item");
 
 const modalTroca = document.getElementById("modal-troca");
 
@@ -23,7 +23,16 @@ const botaoVoltarBatalha = document.getElementById("botao-voltar-batalha");
 
 let trocaObrigatoria = modalTroca.dataset.trocaObrigatoria === "true";
 
-const botoesTroca = document.querySelectorAll(".cartao-troca");
+const botoesTroca = modalTroca.querySelectorAll(".cartao-troca");
+
+// Elementos da janela de seleção do Revive
+const modalRevive = document.getElementById("modal-revive");
+const listaRevive = document.getElementById("lista-revive");
+const botaoVoltarRevive = document.getElementById("botao-voltar-revive");
+
+let idItemRevive = null;
+let botoesRevive = [];
+let botaoItemRevive = null;
 
 const botaoFugir = document.getElementById("botao-fugir");
 
@@ -159,6 +168,7 @@ function mostrarResultado(dados) {
     menuAtaques.hidden = true;
     menuItens.hidden = true;
     modalTroca.hidden = true;
+    modalRevive.hidden = true;
 
     // Define o título e a mensagem
     if (resultado === "vitoria") {
@@ -328,6 +338,222 @@ function fecharJanelaTroca() {
     trocaPendente = false;
 }
 
+// Abre a janela para escolher um Pokémon derrotado
+function abrirJanelaRevive(pokemons) {
+
+    menuItens.hidden = true;
+
+    listaRevive.innerHTML = "";
+
+    pokemons.forEach(function (pokemon) {
+
+        const cartao = document.createElement("button");
+
+        cartao.type = "button";
+        cartao.classList.add("cartao-troca");
+        cartao.dataset.idPokemon = pokemon.id_pokemon;
+
+        const imagem = document.createElement("img");
+
+        if (pokemon.imagem) {
+            imagem.src = pokemon.imagem;
+            imagem.alt = pokemon.nome;
+        }
+
+        const informacoes = document.createElement("div");
+
+        const nome = document.createElement("h3");
+        nome.textContent = pokemon.nome;
+
+        const hp = document.createElement("p");
+        hp.textContent = "Derrotado";
+
+        informacoes.appendChild(nome);
+        informacoes.appendChild(hp);
+
+        cartao.appendChild(imagem);
+        cartao.appendChild(informacoes);
+
+        listaRevive.appendChild(cartao);
+    });
+
+    modalRevive.hidden = false;
+
+    botoesRevive = listaRevive.querySelectorAll(".cartao-troca");
+}
+
+// Escolhe o Pokémon que será revivido
+listaRevive.addEventListener("click", async function (evento) {
+
+    const cartao = evento.target.closest(".cartao-troca");
+
+    if (!cartao || !idItemRevive || batalhaEncerrada) {
+        return;
+    }
+
+    const idPokemon = cartao.dataset.idPokemon;
+
+    // Impede escolher mais de um Pokémon ao mesmo tempo
+    botoesRevive.forEach(function (botao) {
+        botao.disabled = true;
+    });
+
+    try {
+
+        const resposta = await fetch(
+            "/Trabalho_Pokemon/public/api/acao.php",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body:
+                    "id_item=" + encodeURIComponent(idItemRevive) +
+                    "&id_pokemon_reviver=" + encodeURIComponent(idPokemon)
+            }
+        );
+
+        const dados = await resposta.json();
+
+        if (!dados.sucesso) {
+
+            adicionarMensagem(dados.mensagem);
+
+            botoesRevive.forEach(function (botao) {
+                botao.disabled = false;
+            });
+
+            return;
+        }
+
+        // Fecha a janela de seleção
+        modalRevive.hidden = true;
+
+        idItemRevive = null;
+
+        // Atualiza a quantidade do Revive
+        if (dados.item_utilizado && botaoItemRevive) {
+
+            const quantidade =
+                dados.item_utilizado.quantidade_restante;
+
+            const cartaoItem = botaoItemRevive.closest(".cartao-item");
+
+            if (cartaoItem) {
+
+                if (quantidade <= 0) {
+
+                    cartaoItem.remove();
+
+                } else {
+
+                    const textoQuantidade =
+                        cartaoItem.querySelector(".dados-item p");
+
+                    if (textoQuantidade) {
+                        textoQuantidade.textContent =
+                            "Quantidade: x" + quantidade;
+                    }
+                }
+            }
+        }
+
+        botaoItemRevive = null;
+
+        // Atualiza o HP do Pokémon revivido na equipe
+        if (Array.isArray(dados.pokemons_selecionados)) {
+
+            dados.pokemons_selecionados.forEach(function (pokemon) {
+
+                const barraEquipe = document.querySelector(
+                    '[data-hp-equipe="' + pokemon.id_pokemon + '"]'
+                );
+
+                const textoEquipe = document.querySelector(
+                    '[data-texto-hp-equipe="' + pokemon.id_pokemon + '"]'
+                );
+
+                const porcentagem = (pokemon.hp_atual / pokemon.hp_maximo) * 100;
+
+                if (barraEquipe) {
+                    barraEquipe.style.width = porcentagem + "%";
+                }
+
+                if (textoEquipe) {
+                    textoEquipe.textContent =
+                        "HP: " + pokemon.hp_atual +
+                        " / " + pokemon.hp_maximo;
+                }
+            });
+        }
+
+        // Exibe os acontecimentos da utilização do Revive
+        if (Array.isArray(dados.eventos)) {
+
+            for (const evento of dados.eventos) {
+
+                atualizarHPJogador(evento);
+                atualizarHPAdversario(evento);
+
+                adicionarMensagem(evento.mensagem);
+
+                await esperar(1100);
+            }
+        }
+
+        // Verifica se precisa trocar de Pokémon
+        if (dados.solicitar_troca) {
+
+            await esperar(500);
+
+            abrirJanelaTroca();
+
+            return;
+        }
+        // Verifica se entrou um novo adversário
+        if (dados.pokemon_adversario_entrou) {
+
+            await esperar(900);
+
+            window.location.reload();
+
+            return;
+        }
+
+        // Verifica se a batalha terminou
+        if (dados.resultado_batalha) {
+
+            mostrarResultado(dados);
+
+            return;
+        }
+
+
+    } catch (erro) {
+
+        console.error("Erro ao utilizar Revive:", erro);
+
+        adicionarMensagem(
+            "Não foi possível reviver o Pokémon."
+        );
+
+        botoesRevive.forEach(function (botao) {
+            botao.disabled = false;
+        });
+    }
+});
+
+// Volta à lista de itens sem consumir o Revive
+botaoVoltarRevive.addEventListener("click", function () {
+
+    modalRevive.hidden = true;
+
+    idItemRevive = null;
+    botaoItemRevive = null;
+
+    menuItens.hidden = false;
+});
+
 // Volta à batalha sem trocar de Pokémon
 botaoVoltarBatalha.addEventListener("click", function () {
 
@@ -369,24 +595,163 @@ botaoVoltarAtaques.addEventListener("click", function () {
 
 // Abre o menu de itens
 botaoItens.addEventListener("click", function () {
+    if (trocaPendente || batalhaEncerrada) return;
 
-    if (trocaPendente || batalhaEncerrada) {
-        return;
-    }
-
-    menuPrincipal.hidden = true;
     menuItens.hidden = false;
 });
 
 // Volta ao menu principal
 botaoVoltarItens.addEventListener("click", function () {
-
-    if (trocaPendente || batalhaEncerrada) {
-        return;
-    }
+    if (trocaPendente || batalhaEncerrada) return;
 
     menuItens.hidden = true;
-    menuPrincipal.hidden = false;
+});
+
+// Utiliza um item durante a batalha
+botoesItem.forEach(function (botao) {
+
+    botao.addEventListener("click", async function () {
+
+        if (trocaPendente || batalhaEncerrada) {
+            return;
+        }
+
+        const idItem = this.dataset.idItem;
+
+        // Impede utilizar vários itens ao mesmo tempo
+        botoesItem.forEach(function (botao) {
+            botao.disabled = true;
+        });
+
+        try {
+
+            const resposta = await fetch(
+                "/Trabalho_Pokemon/public/api/acao.php",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "id_item=" + encodeURIComponent(idItem)
+                }
+            );
+
+            const dados = await resposta.json();
+
+            // Verifica se o servidor solicitou a escolha de um Pokémon para reviver
+            if (dados.solicitar_revive) {
+
+                idItemRevive = idItem;
+                botaoItemRevive = this;
+
+                abrirJanelaRevive(dados.pokemons_para_reviver);
+
+                return;
+            }
+
+            if (!dados.sucesso) {
+
+                adicionarMensagem(dados.mensagem);
+
+                if (dados.solicitar_troca) {
+                    menuItens.hidden = true;
+                    abrirJanelaTroca();
+                }
+
+                return;
+            }
+
+            // Fecha a janela de itens
+            menuItens.hidden = true;
+
+            // Atualiza a quantidade do item utilizado
+            if (dados.item_utilizado) {
+
+                const quantidade =
+                    dados.item_utilizado.quantidade_restante;
+
+                const cartao = this.closest(".cartao-item");
+
+                if (cartao) {
+
+                    if (quantidade <= 0) {
+
+                        cartao.remove();
+
+                    } else {
+
+                        const textoQuantidade =
+                            cartao.querySelector(".dados-item p");
+
+                        if (textoQuantidade) {
+                            textoQuantidade.textContent =
+                                "Quantidade: x" + quantidade;
+                        }
+                    }
+                }
+            }
+
+            // Mostra as mensagens e atualiza os HP
+            if (Array.isArray(dados.eventos)) {
+
+                for (const evento of dados.eventos) {
+
+                    atualizarHPJogador(evento);
+                    atualizarHPAdversario(evento);
+
+                    adicionarMensagem(evento.mensagem);
+
+                    await esperar(1100);
+                }
+            }
+
+            // Verifica se precisa trocar de Pokémon
+            if (dados.solicitar_troca) {
+
+                await esperar(500);
+
+                window.location.reload();
+
+                return;
+            }
+
+            // Verifica se entrou um novo adversário
+            if (dados.pokemon_adversario_entrou) {
+
+                await esperar(900);
+
+                window.location.reload();
+
+                return;
+            }
+
+            // Verifica se a batalha terminou
+            if (dados.resultado_batalha) {
+
+                mostrarResultado(dados);
+
+                return;
+            }
+
+        } catch (erro) {
+
+            console.error("Erro ao utilizar item:", erro);
+
+            adicionarMensagem(
+                "Não foi possível utilizar o item."
+            );
+
+        } finally {
+
+            // Libera os itens se a batalha ainda estiver acontecendo
+            if (!trocaPendente && !batalhaEncerrada) {
+
+                botoesItem.forEach(function (botao) {
+                    botao.disabled = false;
+                });
+            }
+        }
+    });
 });
 
 // Seleciona o Pokémon que entrará na batalha

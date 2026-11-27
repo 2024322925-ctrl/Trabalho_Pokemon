@@ -97,6 +97,12 @@ $idAtaque = filter_input(INPUT_POST, "id_ataque", FILTER_VALIDATE_INT);
 $idPokemonTroca = filter_input(INPUT_POST, "id_pokemon", FILTER_VALIDATE_INT);
 $idItem = filter_input(INPUT_POST, "id_item", FILTER_VALIDATE_INT);
 
+$idPokemonReviver = filter_input(
+    INPUT_POST,
+    "id_pokemon_reviver",
+    FILTER_VALIDATE_INT
+);
+
 // Identifica se a ação é uma troca voluntária
 $trocaVoluntaria = $idPokemonTroca !== null
     && $idPokemonTroca !== false
@@ -370,6 +376,80 @@ $pokemonAtacante["hp_atual_exibicao"] = $hpAtacante;
 $pokemonAdversario["hp_atual"] = $hpAdversario;
 $pokemonAdversario["hp_atual_exibicao"] = $hpAdversario;
 
+// Verifica se o jogador está solicitando a seleção de um Pokémon para reviver
+if ($usarItem && (int) $idItem === 12 && !$idPokemonReviver) {
+
+    $pokemonsParaReviver = [];
+
+    // Procura Pokémon derrotados entre os três selecionados
+    foreach ($pokemonsSelecionados as $pokemon) {
+
+        if ((int) ($pokemon["hp_atual"] ?? 0) <= 0) {
+
+            $pokemonsParaReviver[] = [
+                "id_pokemon" => (int) $pokemon["id_pokemon"],
+                "nome" => $pokemon["nome"],
+                "imagem" => $pokemon["imagem"] ?? null,
+                "hp_maximo" => (int) $pokemon["hp_maximo"]
+            ];
+        }
+    }
+
+    // Verifica se existe algum Pokémon que possa ser revivido
+    if (empty($pokemonsParaReviver)) {
+
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Você não possui Pokémon derrotados para reviver."
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    // Solicita ao jogador que escolha um Pokémon
+    echo json_encode([
+        "sucesso" => true,
+        "solicitar_revive" => true,
+        "pokemons_para_reviver" => $pokemonsParaReviver
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
+
+// Valida o Pokémon escolhido para utilizar o Revive
+if ($usarItem && (int) $idItem === 12 && $idPokemonReviver) {
+
+    $pokemonEncontrado = false;
+
+    foreach ($pokemonsSelecionados as $indice => $pokemon) {
+
+        if ((int) $pokemon["id_pokemon"] === (int) $idPokemonReviver) {
+
+            $pokemonEncontrado = true;
+
+            // Verifica se o Pokémon realmente está derrotado
+            if ((int) ($pokemon["hp_atual"] ?? 0) > 0) {
+                echo json_encode([
+                    "sucesso" => false,
+                    "mensagem" => "Esse Pokémon não está derrotado."
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            break;
+        }
+    }
+
+    // Verifica se o Pokémon pertence aos três selecionados
+    if (!$pokemonEncontrado) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Esse Pokémon não pertence à sua equipe selecionada."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
+
 // Verifica se algum Pokémon já foi derrotado
 if ($hpAtacante <= 0 || $hpAdversario <= 0) {
     echo json_encode([
@@ -380,6 +460,7 @@ if ($hpAtacante <= 0 || $hpAdversario <= 0) {
 }
 
 // Valida o ataque somente quando a ação não for uma troca
+
 // Aplica o efeito do item escolhido
 $mensagemItem = null;
 
@@ -388,73 +469,140 @@ if ($usarItem) {
     $hpMaximo = (int) $pokemonAtacante["hp_maximo"];
     $statusAtual = $pokemonAtacante["status_atual"] ?? null;
 
-    switch ((int) $idItem) {
+    // Revive
+    if ((int) $idItem === 12) {
 
-        case 1: // Potion
-            $novoHP = min($hpAtacante + 20, $hpMaximo);
-            break;
+        foreach ($pokemonsSelecionados as $indice => $pokemon) {
 
-        case 2: // Super Potion
-            $novoHP = min($hpAtacante + 50, $hpMaximo);
-            break;
+            if ((int) $pokemon["id_pokemon"] === (int) $idPokemonReviver) {
 
-        case 3: // Hyper Potion
-            $novoHP = min($hpAtacante + 200, $hpMaximo);
-            break;
+                $hpMaximoReviver = (int) $pokemon["hp_maximo"];
+                $hpRecuperado = max(1, (int) ceil($hpMaximoReviver * 0.5));
 
-        case 4: // Max Potion
-        case 5: // Full Restore
-            $novoHP = $hpMaximo;
-            break;
+                $pokemonsSelecionados[$indice]["hp_atual"] = $hpRecuperado;
+                $pokemonsSelecionados[$indice]["hp_atual_exibicao"] = $hpRecuperado;
+                $pokemonsSelecionados[$indice]["status_atual"] = null;
 
-        default:
-            $novoHP = $hpAtacante;
-            break;
+                unset($pokemonsSelecionados[$indice]["turnos_sono"]);
+
+                $mensagemItem = $pokemon["nome"]
+                    . " foi revivido e recuperou "
+                    . $hpRecuperado
+                    . " HP!";
+
+                break;
+            }
+        }
+
+    } else {
+
+        // Itens de recuperação de HP
+        switch ((int) $idItem) {
+
+            case 1: // Potion
+                $novoHP = min($hpAtacante + 20, $hpMaximo);
+                break;
+
+            case 2: // Super Potion
+                $novoHP = min($hpAtacante + 50, $hpMaximo);
+                break;
+
+            case 3: // Hyper Potion
+                $novoHP = min($hpAtacante + 200, $hpMaximo);
+                break;
+
+            case 4: // Max Potion
+            case 5: // Full Restore
+                $novoHP = $hpMaximo;
+                break;
+
+            default:
+                $novoHP = $hpAtacante;
+                break;
+        }
+
+        // Verifica qual status o item pode remover
+        $statusParaCurar = [
+            6 => "envenenado", // Antidote
+            7 => "queimado",   // Burn Heal
+            8 => "congelado",  // Ice Heal
+            9 => "dormindo",   // Awakening
+            10 => "paralisado" // Paralyze Heal
+        ];
+
+        $curarStatus = false;
+
+        // Full Restore e Full Heal removem qualquer status negativo
+        if (in_array((int) $idItem, [5, 11], true)) {
+
+            $curarStatus = !in_array(
+                $statusAtual,
+                [null, "", "normal"],
+                true
+            );
+
+        } elseif (isset($statusParaCurar[(int) $idItem])) {
+
+            $curarStatus = $statusAtual === $statusParaCurar[(int) $idItem];
+        }
+
+        // Verifica se o item realmente produzirá algum efeito
+        if (
+            $novoHP === $hpAtacante &&
+            !$curarStatus
+        ) {
+
+            echo json_encode([
+                "sucesso" => false,
+                "mensagem" => "Esse Pokémon não precisa desse item."
+            ], JSON_UNESCAPED_UNICODE);
+
+            exit;
+        }
+
+        // Calcula quanto HP foi recuperado
+        $hpRecuperado = $novoHP - $hpAtacante;
+
+        // Atualiza o HP do Pokémon ativo
+        $pokemonAtacante["hp_atual"] = $novoHP;
+        $pokemonAtacante["hp_atual_exibicao"] = $novoHP;
+
+        $hpAtacante = $novoHP;
+
+        // Remove o status negativo quando necessário
+        if ($curarStatus) {
+
+            $pokemonAtacante["status_atual"] = null;
+
+            unset($pokemonAtacante["turnos_sono"]);
+        }
+
+        // Monta a mensagem de utilização do item
+        if ($curarStatus && $hpRecuperado > 0) {
+
+            $mensagemItem = $pokemonAtacante["nome"]
+                . " recuperou "
+                . $hpRecuperado
+                . " HP e teve seu status removido usando "
+                . $itemUtilizado["nome"] . "!";
+
+        } elseif ($curarStatus) {
+
+            $mensagemItem = $pokemonAtacante["nome"]
+                . " teve seu status removido usando "
+                . $itemUtilizado["nome"] . "!";
+
+        } else {
+
+            $mensagemItem = $pokemonAtacante["nome"]
+                . " recuperou "
+                . $hpRecuperado
+                . " HP usando "
+                . $itemUtilizado["nome"] . "!";
+        }
     }
-
-    // Verifica se o item realmente produzirá algum efeito
-    $curarStatus = (int) $idItem === 5 && $statusAtual !== null;
-
-    if ($novoHP === $hpAtacante && !$curarStatus) {
-        echo json_encode([
-            "sucesso" => false,
-            "mensagem" => "Esse Pokémon não precisa desse item."
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    // Consome uma unidade do inventário
-    $consumiuItem = $itemController->consumirItem(
-        (int) $_SESSION["id_usuario"],
-        (int) $idItem
-    );
-
-    if (!$consumiuItem) {
-        echo json_encode([
-            "sucesso" => false,
-            "mensagem" => "Não foi possível utilizar o item."
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    // Atualiza o HP do Pokémon
-    $pokemonAtacante["hp_atual"] = $novoHP;
-    $pokemonAtacante["hp_atual_exibicao"] = $novoHP;
-
-    $hpAtacante = $novoHP;
-
-    // Full Restore também remove o status negativo
-    if ((int) $idItem === 5) {
-        $pokemonAtacante["status_atual"] = null;
-        unset($pokemonAtacante["turnos_sono"]);
-    }
-
-    $mensagemItem = $pokemonAtacante["nome"]
-        . " recuperou HP usando "
-        . $itemUtilizado["nome"] . "!";
 }
 
-// Valida o ataque somente quando a ação não for uma troca ou uso de item
 $ataqueJogador = null;
 
 if (!$trocaVoluntaria && !$usarItem) {
@@ -484,6 +632,23 @@ if (!$ataqueAdversario) {
         "mensagem" => "O adversário não possui ataques disponíveis."
     ], JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+// Consome uma unidade do inventário somente se um item foi utilizado
+if ($usarItem) {
+
+    $consumiuItem = $itemController->consumirItem(
+        (int) $_SESSION["id_usuario"],
+        (int) $idItem
+    );
+
+    if (!$consumiuItem) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Não foi possível utilizar o item."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
 
 // Define quem atacará primeiro conforme a velocidade
