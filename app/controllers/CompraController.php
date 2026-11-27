@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../dao/CompraDAO.php";
+
 
 class CompraController
 {

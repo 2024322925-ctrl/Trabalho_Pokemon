@@ -1,5 +1,6 @@
-
 <?php
+
+require_once __DIR__ . "/../../app/autoload.php";
 
 session_start();
 
@@ -32,11 +33,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
-require_once __DIR__ . "/../../app/controllers/BatalhaController.php";
+
 
 $batalhaController = new BatalhaController();
 
-require_once __DIR__ . "/../../app/controllers/ItemController.php";
+
 
 $itemController = new ItemController();
 
@@ -493,7 +494,6 @@ if ($usarItem) {
                 break;
             }
         }
-
     } else {
 
         // Itens de recuperação de HP
@@ -540,7 +540,6 @@ if ($usarItem) {
                 [null, "", "normal"],
                 true
             );
-
         } elseif (isset($statusParaCurar[(int) $idItem])) {
 
             $curarStatus = $statusAtual === $statusParaCurar[(int) $idItem];
@@ -585,13 +584,11 @@ if ($usarItem) {
                 . $hpRecuperado
                 . " HP e teve seu status removido usando "
                 . $itemUtilizado["nome"] . "!";
-
         } elseif ($curarStatus) {
 
             $mensagemItem = $pokemonAtacante["nome"]
                 . " teve seu status removido usando "
                 . $itemUtilizado["nome"] . "!";
-
         } else {
 
             $mensagemItem = $pokemonAtacante["nome"]
@@ -804,7 +801,6 @@ $executarAtaqueDoTurno = function (
         $condicao = $batalhaController->verificarCondicaoDeAcao(
             $pokemonAtacante
         );
-
     } else {
 
         $condicao = $batalhaController->verificarCondicaoDeAcao(
@@ -852,7 +848,6 @@ $executarAtaqueDoTurno = function (
 
         $danoJogador = $resultado["dano"];
         $efetividadeJogador = $resultado["efetividade"];
-
     } else {
 
         $resultado = $batalhaController->executarAtaque(
@@ -901,7 +896,6 @@ if ($trocaVoluntaria || $usarItem) {
         $ataqueAdversario,
         "adversario"
     );
-
 } else {
 
     // Define a ordem dos ataques conforme a velocidade
@@ -925,7 +919,6 @@ if ($trocaVoluntaria || $usarItem) {
                 "adversario"
             );
         }
-
     } else {
 
         // Primeiro: adversário
@@ -1106,14 +1099,13 @@ if ((int) $pokemonAtacante["hp_atual"] <= 0) {
             "hp_maximo_adversario" => (int) $pokemonAdversario["hp_maximo"],
             "porcentagem_hp_adversario" => (
                 (int) $pokemonAdversario["hp_maximo"] > 0
-                    ? (
-                        (int) $pokemonAdversario["hp_atual"]
-                        / (int) $pokemonAdversario["hp_maximo"]
-                    ) * 100
-                    : 0
+                ? (
+                    (int) $pokemonAdversario["hp_atual"]
+                    / (int) $pokemonAdversario["hp_maximo"]
+                ) * 100
+                : 0
             )
         ];
-
     } else {
 
         // Todos os Pokémon do jogador foram derrotados
@@ -1200,25 +1192,24 @@ if ((int) $pokemonAdversario["hp_atual"] <= 0) {
             "hp_maximo_jogador" => (int) $pokemonAtacante["hp_maximo"],
             "porcentagem_hp_jogador" => (
                 (int) $pokemonAtacante["hp_maximo"] > 0
-                    ? (
-                        (int) $pokemonAtacante["hp_atual"]
-                        / (int) $pokemonAtacante["hp_maximo"]
-                    ) * 100
-                    : 0
+                ? (
+                    (int) $pokemonAtacante["hp_atual"]
+                    / (int) $pokemonAtacante["hp_maximo"]
+                ) * 100
+                : 0
             ),
 
             "hp_adversario" => $hpNovoAdversario,
             "hp_maximo_adversario" => (int) $pokemonAdversario["hp_maximo"],
             "porcentagem_hp_adversario" => (
                 (int) $pokemonAdversario["hp_maximo"] > 0
-                    ? (
-                        $hpNovoAdversario
-                        / (int) $pokemonAdversario["hp_maximo"]
-                    ) * 100
-                    : 0
+                ? (
+                    $hpNovoAdversario
+                    / (int) $pokemonAdversario["hp_maximo"]
+                ) * 100
+                : 0
             )
         ];
-
     } else {
 
         // Todos os adversários foram derrotados

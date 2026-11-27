@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . "/app/services/PokemonAPI.php";
-require_once __DIR__ . "/app/dao/PokemonDAO.php";
+require_once __DIR__ . "/app/autoload.php";
+
 
 set_time_limit(0);
 

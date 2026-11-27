@@ -1,7 +1,6 @@
-
 <?php
 
-require_once __DIR__ . "/../dao/FaseDAO.php";
+
 
 class FaseController
 {

@@ -1,6 +1,8 @@
 
 <?php
 
+require_once __DIR__ . "/../../../autoload.php";
+
 session_start();
 
 if (!isset($_SESSION["id_usuario"])) {
@@ -13,8 +15,7 @@ if (!isset($_SESSION["preparacao_batalha"])) {
     exit;
 }
 
-require_once __DIR__ . "/../../../controllers/BatalhaController.php";
-require_once __DIR__ . "/../../../controllers/ItemController.php";
+
 
 $batalhaController = new BatalhaController();
 $itemController = new ItemController();

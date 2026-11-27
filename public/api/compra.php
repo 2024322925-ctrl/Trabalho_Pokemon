@@ -1,12 +1,16 @@
 <?php
 
+require_once __DIR__ . "/../../app/autoload.php";
+
+
 session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once __DIR__ . "/../../app/controllers/CompraController.php";
 
-function responder($dados, $status = 200) {
+
+function responder($dados, $status = 200)
+{
     http_response_code($status);
     echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     exit;
@@ -61,7 +65,6 @@ try {
         "mensagem" => "Compra realizada com sucesso!",
         "id_compra" => $id_compra
     ]);
-
 } catch (Throwable $e) {
 
     error_log("Erro ao realizar compra: " . $e->getMessage());
@@ -71,5 +74,3 @@ try {
         "mensagem" => "Não foi possível concluir a compra."
     ], 500);
 }
-
-?>

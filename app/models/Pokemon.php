@@ -16,6 +16,63 @@ class Pokemon
     private $imagem;
     private $imagem_costas;
 
+    private const CAMPOS = [
+        "id_pokemon",
+        "nome",
+        "hp",
+        "hp_atual",
+        "velocidade",
+        "ataque",
+        "defesa",
+        "ataque_especial",
+        "defesa_especial",
+        "status_atual",
+        "ativo",
+        "imagem_costas",
+        "imagem"
+    ];
+
+    
+    private array $tipos = [];
+
+    public static function doBanco(array $dados): self
+    {
+        $pokemon = new self();
+        foreach (self::CAMPOS as $campo) {
+            $pokemon->$campo = $dados[$campo] ?? null;
+        }
+
+        $tipos = array_map(
+            static fn(array $tipo): TipoPokemon => TipoPokemon::porNome($tipo["nome"]),
+            $dados["tipos"] ?? []
+        );
+        $pokemon->definirTipos(...$tipos);
+        return $pokemon;
+    }
+
+    public function dados(): array
+    {
+        $dados = [];
+        foreach (self::CAMPOS as $campo) {
+            $dados[$campo] = $this->$campo;
+        }
+        return $dados;
+    }
+
+    public function definirTipos(TipoPokemon ...$tipos): void
+    {
+        $this->tipos = $tipos;
+    }
+
+    public function multiplicadorRecebidoDe(TipoPokemon $ataque): float
+    {
+        $multiplicador = 1.0;
+        foreach ($this->tipos as $tipo) {
+            $multiplicador *= $ataque->multiplicadorContra($tipo);
+        }
+        return $multiplicador;
+    }
+
     public function getId_pokemon()
     {
         return $this->id_pokemon;

@@ -1,10 +1,11 @@
 <?php
 
+require_once __DIR__ . "/../../app/autoload.php";
+
 session_start();
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once __DIR__ . "/../../app/controllers/PokemonController.php";
-require_once __DIR__ . "/../../app/dao/PokemonDesbloqueioDAO.php";
+
 
 try {
     $controller = new PokemonController();

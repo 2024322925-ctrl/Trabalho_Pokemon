@@ -1,16 +1,12 @@
 <?php
 
+require_once __DIR__ . "/../../app/autoload.php";
+
 session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once __DIR__ . "/../../app/autoload.php";
-require_once __DIR__ . "/../../app/controllers/TimePokemonController.php";
-require_once __DIR__ . "/../../app/controllers/TimeMembroController.php";
-require_once __DIR__ . "/../../app/models/TimeMembro.php";
-require_once __DIR__ . "/../../app/controllers/PokemonController.php";
 
-require_once __DIR__ . "/../../app/dao/PokemonDesbloqueioDAO.php";
 
 function responder($dados) {
     echo json_encode($dados);

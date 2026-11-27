@@ -1,7 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../models/Pokemon.php";
-require_once __DIR__ . "/../../config/database.php";
+
 
 class PokemonDAO
 {
@@ -76,23 +75,16 @@ class PokemonDAO
             return null;
         }
 
-        $pokemon = new Pokemon();
+        $stmt = $this->conexao->prepare(
+            "SELECT t.nome FROM tipo t
+             INNER JOIN pokemon_tipo pt ON pt.id_tipo = t.id_tipo
+             WHERE pt.id_pokemon = :id_pokemon"
+        );
+        $stmt->bindValue(":id_pokemon", $id_pokemon, PDO::PARAM_INT);
+        $stmt->execute();
+        $dados["tipos"] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $pokemon->setId_pokemon($dados["id_pokemon"]);
-        $pokemon->setNome($dados["nome"]);
-        $pokemon->setHp($dados["hp"]);
-        $pokemon->setHp_atual($dados["hp_atual"]);
-        $pokemon->setVelocidade($dados["velocidade"]);
-        $pokemon->setAtaque($dados["ataque"]);
-        $pokemon->setDefesa($dados["defesa"]);
-        $pokemon->setAtaque_especial($dados["ataque_especial"]);
-        $pokemon->setDefesa_especial($dados["defesa_especial"]);
-        $pokemon->setStatus_atual($dados["status_atual"]);
-        $pokemon->setAtivo($dados["ativo"]);
-        $pokemon->setImagem($dados["imagem"]);
-        $pokemon->setImagem_costas($dados["imagem_costas"]);
-
-        return $pokemon;
+        return Pokemon::doBanco($dados);
     }
 
     private const INICIAIS_TEAM_BUILDER = [

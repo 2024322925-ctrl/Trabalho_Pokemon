@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../autoload.php";
+
 session_start();
 
 if (!isset($_SESSION["id_usuario"])) {
@@ -10,8 +12,7 @@ if (!isset($_SESSION["id_usuario"])) {
 $nome = $_SESSION["nome"];
 $sobrenome = $_SESSION["sobrenome"];
 
-require_once __DIR__ . "/../../controllers/TimePokemonController.php";
-require_once __DIR__ . "/../../controllers/TimeMembroController.php";
+
 
 // Busca o time ativo do usuário
 $timeController = new TimePokemonController();

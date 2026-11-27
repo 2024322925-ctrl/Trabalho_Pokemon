@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../dao/TimePokemonDAO.php";
+
 
 class TimePokemonController
 {

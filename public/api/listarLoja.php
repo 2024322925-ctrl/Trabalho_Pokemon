@@ -1,12 +1,13 @@
 
 <?php
 
+require_once __DIR__ . "/../../app/autoload.php";
+
 session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once __DIR__ . "/../../app/controllers/ItemController.php";
-require_once __DIR__ . "/../../app/controllers/CarteiraController.php";
+
 
 function responder($dados, $status = 200)
 {
@@ -56,7 +57,6 @@ try {
         "itens" => $itens,
         "saldo" => $saldo
     ]);
-
 } catch (Throwable $e) {
 
     error_log("Erro ao carregar a Poké Mart: " . $e->getMessage());

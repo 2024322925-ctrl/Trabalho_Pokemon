@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../autoload.php";
+
 session_start();
 
 if (!isset($_SESSION["id_usuario"])) {
@@ -7,8 +9,7 @@ if (!isset($_SESSION["id_usuario"])) {
     exit;
 }
 
-require_once __DIR__ . "/../../controllers/TimePokemonController.php";
-require_once __DIR__ . "/../../models/TimePokemon.php";
+
 
 $timeController = new TimePokemonController();
 

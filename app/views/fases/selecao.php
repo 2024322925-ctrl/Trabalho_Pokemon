@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../autoload.php";
+
 session_start();
 
 // Verifica se o usuário está logado
@@ -22,8 +24,7 @@ if ($idFase < 1 || $idFase > 8) {
 }
 
 // Carrega os Controllers
-require_once __DIR__ . "/../../controllers/FaseController.php";
-require_once __DIR__ . "/../../controllers/BatalhaController.php";
+
 
 $faseController = new FaseController();
 $batalhaController = new BatalhaController();
