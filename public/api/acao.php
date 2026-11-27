@@ -41,16 +41,12 @@ $batalhaController = new BatalhaController();
 
 $itemController = new ItemController();
 
-// Verifica se o jogador solicitou fugir da batalha
+// Registra o resultado quando o jogador foge da batalha.
 if (isset($_POST["fugir"]) && $_POST["fugir"] === "1") {
-
     $batalha = $_SESSION["batalha"];
+    $idUsuario = (int) $_SESSION["id_usuario"];
 
-    // Verifica se a batalha pertence ao usuário autenticado
-    if (
-        (int) ($batalha["id_usuario"] ?? 0)
-        !== (int) $_SESSION["id_usuario"]
-    ) {
+    if ((int) ($batalha["id_usuario"] ?? 0) !== $idUsuario) {
         echo json_encode([
             "sucesso" => false,
             "mensagem" => "Batalha inválida."
@@ -58,38 +54,44 @@ if (isset($_POST["fugir"]) && $_POST["fugir"] === "1") {
         exit;
     }
 
-    // Recupera os IDs dos três Pokémon selecionados
-    $idsPokemons = [];
-
-    foreach ($batalha["pokemons_selecionados"] as $pokemon) {
-        $idsPokemons[] = (int) $pokemon["id_pokemon"];
-    }
-
-    // Recupera o HP e remove os status negativos
-    $recuperouEstado = $batalhaController
-        ->recuperarEstadoDosPokemonsSelecionados(
-            $batalha["id_time"],
-            $idsPokemons
-        );
-
-    if (!$recuperouEstado) {
+    if (!empty($batalha["resultado"])) {
         echo json_encode([
             "sucesso" => false,
-            "mensagem" => "Não foi possível recuperar seus Pokémon."
+            "mensagem" => "A batalha já foi encerrada."
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    // Encerra a batalha sem registrar derrota ou conceder recompensas
-    unset($_SESSION["batalha"]);
-    unset($_SESSION["preparacao_batalha"]);
+    $idsPokemons = array_map(
+        "intval",
+        array_column($batalha["pokemons_selecionados"] ?? [], "id_pokemon")
+    );
+
+    $finalizacao = $batalhaController->finalizarBatalha(
+        $idUsuario,
+        (int) ($batalha["id_time"] ?? 0),
+        (int) ($batalha["id_fase"] ?? 0),
+        "fuga",
+        $idsPokemons,
+        $batalha["chave_batalha"] ?? null
+    );
+
+    if (empty($finalizacao["sucesso"])) {
+        echo json_encode([
+            "sucesso" => false,
+            "mensagem" => "Não foi possível registrar a fuga. Tente novamente."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    unset($_SESSION["batalha"], $_SESSION["preparacao_batalha"]);
 
     echo json_encode([
         "sucesso" => true,
         "resultado_batalha" => "fuga",
+        "id_batalha" => $finalizacao["id_batalha"],
         "mensagem" => "Você fugiu da batalha!"
     ], JSON_UNESCAPED_UNICODE);
-
     exit;
 }
 

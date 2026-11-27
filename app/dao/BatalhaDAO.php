@@ -165,9 +165,12 @@ class BatalhaDAO
             return false;
         }
 
-        try {
+        $transacaoPropria = !$this->conexao->inTransaction();
 
-            $this->conexao->beginTransaction();
+        try {
+            if ($transacaoPropria) {
+                $this->conexao->beginTransaction();
+            }
 
             // Cria registros para Pokémon que ainda não possuem status salvo
             $placeholders = [];
@@ -235,10 +238,15 @@ class BatalhaDAO
             $stmt = $this->conexao->prepare($sql);
             $stmt->execute($parametrosUpdate);
 
-            $this->conexao->commit();
+            if ($transacaoPropria) {
+                $this->conexao->commit();
+            }
 
             return true;
         } catch (PDOException $e) {
+            if (!$transacaoPropria) {
+                throw $e;
+            }
 
             if ($this->conexao->inTransaction()) {
                 $this->conexao->rollBack();
@@ -478,6 +486,18 @@ class BatalhaDAO
             return false;
         }
 
+        if ($resultado === "fuga") {
+            return [
+                "sucesso" => true,
+                "id_batalha" => (int) $batalha["id_batalha"],
+                "resultado" => "fuga",
+                "recompensa" => 0,
+                "xp_por_pokemon" => 0,
+                "xp_total" => 0,
+                "pokemons" => []
+            ];
+        }
+
         // Recupera os Pokémon registrados nessa batalha
         $sqlPokemons = "SELECT
                         lbp.id_pokemon,
@@ -550,7 +570,7 @@ class BatalhaDAO
             $idUsuario <= 0 ||
             $idTime <= 0 ||
             $idFase <= 0 ||
-            !in_array($resultado, ["vitoria", "derrota"], true) ||
+            !in_array($resultado, ["vitoria", "derrota", "fuga"], true) ||
             empty($chaveBatalha) ||
             count(array_unique(array_map('intval', $idsPokemons))) !== 3
         ) {
@@ -617,60 +637,54 @@ class BatalhaDAO
             }
 
             // Busca as recompensas cadastradas na fase
-            $sqlFase = "SELECT recompensa_vitoria, xp_recompensa
-                    FROM fase
-                    WHERE id_fase = :id_fase";
+            $recompensa = 0;
+            $xpPorPokemon = 0;
 
-            $stmtFase = $this->conexao->prepare($sqlFase);
+            if ($resultado !== "fuga") {
+                $sqlFase = "SELECT recompensa_vitoria, xp_recompensa
+                FROM fase
+                WHERE id_fase = :id_fase";
 
-            $stmtFase->execute([
-                ':id_fase' => $idFase
-            ]);
+                $stmtFase = $this->conexao->prepare($sqlFase);
+                $stmtFase->execute([':id_fase' => $idFase]);
+                $fase = $stmtFase->fetch(PDO::FETCH_ASSOC);
 
-            $fase = $stmtFase->fetch(PDO::FETCH_ASSOC);
+                if (!$fase) {
+                    $this->conexao->rollBack();
+                    return false;
+                }
 
-            if (!$fase) {
-                $this->conexao->rollBack();
-                return false;
+                $recompensa = (int) $fase["recompensa_vitoria"];
+                $xpPorPokemon = (int) $fase["xp_recompensa"];
+
+                if ($resultado === "derrota") {
+                    $recompensa = (int) floor($recompensa * 0.25);
+                    $xpPorPokemon = (int) floor($xpPorPokemon * 0.30);
+                }
+
+                $sqlCarteira = "SELECT id_carteira
+                    FROM carteira
+                    WHERE id_usuario = :id_usuario
+                    FOR UPDATE";
+
+                $stmtCarteira = $this->conexao->prepare($sqlCarteira);
+                $stmtCarteira->execute([':id_usuario' => $idUsuario]);
+
+                if (!$stmtCarteira->fetch(PDO::FETCH_ASSOC)) {
+                    $this->conexao->rollBack();
+                    return false;
+                }
+
+                $sqlAtualizarCarteira = "UPDATE carteira
+                            SET saldo = LEAST(saldo + :recompensa, 99999999.99)
+                            WHERE id_usuario = :id_usuario";
+
+                $stmtCarteira = $this->conexao->prepare($sqlAtualizarCarteira);
+                $stmtCarteira->execute([
+                    ':recompensa' => $recompensa,
+                    ':id_usuario' => $idUsuario
+                ]);
             }
-
-            $recompensa = (int) $fase["recompensa_vitoria"];
-            $xpPorPokemon = (int) $fase["xp_recompensa"];
-
-            // Aplica as porcentagens em caso de derrota
-            if ($resultado === "derrota") {
-                $recompensa = (int) floor($recompensa * 0.25);
-                $xpPorPokemon = (int) floor($xpPorPokemon * 0.30);
-            }
-
-            // Verifica se o usuário possui carteira
-            $sqlCarteira = "SELECT id_carteira
-                        FROM carteira
-                        WHERE id_usuario = :id_usuario
-                        FOR UPDATE";
-
-            $stmtCarteira = $this->conexao->prepare($sqlCarteira);
-
-            $stmtCarteira->execute([
-                ':id_usuario' => $idUsuario
-            ]);
-
-            if (!$stmtCarteira->fetch(PDO::FETCH_ASSOC)) {
-                $this->conexao->rollBack();
-                return false;
-            }
-
-            // Atualiza o saldo da carteira
-            $sqlAtualizarCarteira = "UPDATE carteira
-        SET saldo = LEAST(saldo + :recompensa, 99999999.99)
-         WHERE id_usuario = :id_usuario";
-
-            $stmtCarteira = $this->conexao->prepare($sqlAtualizarCarteira);
-
-            $stmtCarteira->execute([
-                ':recompensa' => $recompensa,
-                ':id_usuario' => $idUsuario
-            ]);
 
             // Registra a batalha no histórico
             $xpTotal = $xpPorPokemon * 3;
@@ -738,15 +752,24 @@ class BatalhaDAO
             }
 
             // Concede XP individualmente aos três Pokémon
-            $resultadoXP = $this->aplicarExperienciaPokemons(
-                $idTime,
-                $idsPokemons,
-                $xpPorPokemon
-            );
+            if ($resultado === "fuga") {
+                if (!$this->recuperarHPDosPokemonsSelecionados($idTime, $idsPokemons)) {
+                    $this->conexao->rollBack();
+                    return false;
+                }
 
-            if ($resultadoXP === false) {
-                $this->conexao->rollBack();
-                return false;
+                $resultadoXP = [];
+            } else {
+                $resultadoXP = $this->aplicarExperienciaPokemons(
+                    $idTime,
+                    $idsPokemons,
+                    $xpPorPokemon
+                );
+
+                if ($resultadoXP === false) {
+                    $this->conexao->rollBack();
+                    return false;
+                }
             }
 
             // Registra a conclusão e libera a próxima fase somente na vitória.
