@@ -33,7 +33,7 @@ if (!in_array($_SERVER["REQUEST_METHOD"], ["GET", "POST"])) {
 $usuarioId = $_SESSION["id_usuario"];
 
 $timeController = new TimePokemonController();
-$membroController = new TimeMembroController();
+
 
 // Busca o time ativo do usuário
 $time = $timeController->buscarTimeAtivo($usuarioId);
@@ -52,11 +52,11 @@ $estado = $desbloqueio->estado($usuarioId);
 // GET: listar Pokémon do time
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
-    $pokemons = $membroController->listarPokemonsDoTime($id_time);
+    
 
     responder([
         "sucesso" => true,
-        "pokemons" => $pokemons,
+        "pokemons" => $time->getMembros(),
         "desbloqueio" => $estado,
         "evolucoes" => (new EvolucaoController())->listarEvolucoes((int) $usuarioId, $id_time)
     ]);
@@ -142,48 +142,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // Adicionar Pokémon
-    if ($acao == "adicionar") {
+        if ($acao === "adicionar") {
         if (!in_array($id_pokemon, $estado["desbloqueados"], true)) {
             responder(["sucesso" => false, "mensagem" => "Desbloqueie este Pokémon na Poké Mart."]);
         }
 
-        $pokemons = $membroController->listarPokemonsDoTime($id_time);
-
-        if (count($pokemons) >= 6) {
-            responder([
-                "sucesso" => false,
-                "mensagem" => "Seu time já está completo."
-            ]);
+        $pokemon = (new PokemonController())->buscarPokemon($id_pokemon);
+        if ($pokemon === null) {
+            responder(["sucesso" => false, "mensagem" => "Pokémon inválido."]);
         }
 
-        foreach ($pokemons as $pokemon) {
-            if ($pokemon["id_pokemon"] == $id_pokemon) {
-                responder([
-                    "sucesso" => false,
-                    "mensagem" => "Esse Pokémon já está no seu time."
-                ]);
-            }
+        try {
+            (new TimeMembroController())->adicionarPokemon($time, $pokemon);
+            responder(["sucesso" => true, "mensagem" => "Pokémon adicionado!"]);
+        } catch (DomainException $erro) {
+            responder(["sucesso" => false, "mensagem" => $erro->getMessage()]);
+        } catch (PDOException $erro) {
+            error_log($erro->getMessage());
+            http_response_code(500);
+            responder(["sucesso" => false, "mensagem" => "Não foi possível adicionar o Pokémon."]);
         }
-
-        $posicao = 1;
-
-        foreach ($pokemons as $pokemon) {
-            $posicao = max($posicao, (int) $pokemon["posicao"] + 1);
-        }
-
-        $membro = new TimeMembro();
-        $membro->setIdTime($id_time);
-        $membro->setIdPokemon($id_pokemon);
-        $membro->setPosicao($posicao);
-
-        $resultado = $membroController->adicionarPokemon($membro);
-
-        responder([
-            "sucesso" => $resultado,
-            "mensagem" => $resultado
-                ? "Pokémon adicionado!"
-                : "Não foi possível adicionar o Pokémon."
-        ]);
     }
 
     // Remover Pokémon

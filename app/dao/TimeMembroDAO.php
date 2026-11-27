@@ -1,95 +1,85 @@
 <?php
 
+class TimeMembroDAO
+{
+    private PDO $conexao;
 
-
-class TimeMembroDAO {
-
-    private $conexao;
-
-    public function __construct() {
-        $database = new Database();
-        $this->conexao = $database->conectar();
+    public function __construct(?PDO $conexao = null)
+    {
+        $this->conexao = $conexao ?? (new Database())->conectar();
     }
 
-    public function adicionar(TimeMembro $membro) {
+    public function carregarMembros(TimePokemon $time): void
+    {
+        $stmt = $this->conexao->prepare(
+            "SELECT p.*, tm.posicao, t.nome AS nome_tipo
+             FROM time_membro tm
+             INNER JOIN pokemon p ON tm.id_pokemon = p.id_pokemon
+             LEFT JOIN pokemon_tipo pt ON pt.id_pokemon = p.id_pokemon
+             LEFT JOIN tipo t ON t.id_tipo = pt.id_tipo
+             WHERE tm.id_time = ?
+             ORDER BY tm.posicao, t.id_tipo"
+        );
+        $stmt->execute([$time->getIdTime()]);
 
-        try {
+        $pokemons = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $linha) {
+            $id = (int) $linha["id_pokemon"];
+            $pokemons[$id] ??= $linha + ["tipos" => []];
 
-            $this->conexao->beginTransaction();
-
-            // Adiciona o Pokémon ao time
-            $sql = "INSERT INTO time_membro (id_time, id_pokemon, posicao)
-                    VALUES (:id_time, :id_pokemon, :posicao)";
-
-            $stmt = $this->conexao->prepare($sql);
-
-            $stmt->bindValue(":id_time", $membro->getIdTime(), PDO::PARAM_INT);
-            $stmt->bindValue(":id_pokemon", $membro->getIdPokemon(), PDO::PARAM_INT);
-            $stmt->bindValue(":posicao", $membro->getPosicao(), PDO::PARAM_INT);
-
-            $stmt->execute();
-
-
-            // Cria automaticamente o status inicial do Pokémon
-            $sqlStatus = "INSERT IGNORE INTO pokemon_time_status
-                            (id_time, id_pokemon, hp_atual, status_atual)
-                            SELECT
-                                :id_time,
-                                :id_pokemon,
-                                hp,
-                                NULL
-                            FROM pokemon
-                            WHERE id_pokemon = :id_pokemon_busca";
-
-            $stmtStatus = $this->conexao->prepare($sqlStatus);
-
-            $stmtStatus->bindValue(":id_time", $membro->getIdTime(), PDO::PARAM_INT);
-            $stmtStatus->bindValue(":id_pokemon", $membro->getIdPokemon(), PDO::PARAM_INT);
-            $stmtStatus->bindValue(":id_pokemon_busca", $membro->getIdPokemon(), PDO::PARAM_INT);
-
-            $stmtStatus->execute();
-
-            $this->conexao->commit();
-
-            return true;
-
-        } catch (PDOException $e) {
-
-            if ($this->conexao->inTransaction()) {
-                $this->conexao->rollBack();
+            if ($linha["nome_tipo"] !== null) {
+                $pokemons[$id]["tipos"][] = ["nome" => $linha["nome_tipo"]];
             }
+        }
 
-            throw $e;
+        foreach ($pokemons as $dados) {
+            $time->registrarMembro(Pokemon::doBanco($dados), (int) $dados["posicao"]);
         }
     }
 
-    public function listarPorTime($id_time) {
-        $sql = "SELECT p.*, tm.posicao
-                FROM time_membro tm
-                INNER JOIN pokemon p ON tm.id_pokemon = p.id_pokemon
-                WHERE tm.id_time = :id_time
-                ORDER BY tm.posicao";
+    public function adicionar(TimePokemon $time, Pokemon $pokemon): void
+    {
+        $this->conexao->beginTransaction();
 
-        $stmt = $this->conexao->prepare($sql);
-        $stmt->bindValue(":id_time", $id_time, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $stmt = $this->conexao->prepare(
+                "SELECT * FROM time_pokemon
+                 WHERE id_time = ? AND id_usuario = ? AND ativo = 1
+                 FOR UPDATE"
+            );
+            $stmt->execute([$time->getIdTime(), $time->getIdUsuario()]);
+            $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+            if (!$dados) {
+                throw new DomainException("Time ativo inválido.");
+            }
 
+            $timeAtual = TimePokemon::doBanco($dados);
+            $this->carregarMembros($timeAtual);
+            $membro = $timeAtual->adicionarPokemon($pokemon);
 
-    public function remover($id_time, $id_pokemon) {
-        $sql = "DELETE FROM time_membro
-                WHERE id_time = :id_time
-                AND id_pokemon = :id_pokemon";
+            $stmt = $this->conexao->prepare(
+                "INSERT INTO time_membro (id_time, id_pokemon, posicao) VALUES (?, ?, ?)"
+            );
+            $stmt->execute([
+                $timeAtual->getIdTime(),
+                $membro->getPokemon()->getId_pokemon(),
+                $membro->getPosicao()
+            ]);
 
-        $stmt = $this->conexao->prepare($sql);
+            $stmt = $this->conexao->prepare(
+                "INSERT INTO pokemon_time_status (id_time, id_pokemon, hp_atual)
+                 SELECT ?, id_pokemon, hp FROM pokemon WHERE id_pokemon = ?"
+            );
+            $stmt->execute([$timeAtual->getIdTime(), $pokemon->getId_pokemon()]);
 
-        $stmt->bindValue(":id_time", $id_time, PDO::PARAM_INT);
-        $stmt->bindValue(":id_pokemon", $id_pokemon, PDO::PARAM_INT);
-
-        return $stmt->execute();
+            $this->conexao->commit();
+        } catch (Throwable $erro) {
+            if ($this->conexao->inTransaction()) {
+                $this->conexao->rollBack();
+            }
+            throw $erro;
+        }
     }
 }
-
-?>

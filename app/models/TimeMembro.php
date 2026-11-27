@@ -1,40 +1,28 @@
 <?php
 
-class TimeMembro
+final class TimeMembro implements JsonSerializable
 {
-    private $id_time;
-    private $id_pokemon;
-    private $posicao;
+    private Pokemon $pokemon;
+    private int $posicao;
 
-    public function getIdTime()
+    public function __construct(Pokemon $pokemon, int $posicao)
     {
-        return $this->id_time;
+        $this->pokemon = $pokemon;
+        $this->posicao = $posicao;
     }
 
-    public function setIdTime($id_time)
+    public function getPokemon(): Pokemon
     {
-        $this->id_time = $id_time;
+        return $this->pokemon;
     }
 
-    public function getIdPokemon()
-    {
-        return $this->id_pokemon;
-    }
-
-    public function setIdPokemon($id_pokemon)
-    {
-        $this->id_pokemon = $id_pokemon;
-    }
-
-    public function getPosicao()
+    public function getPosicao(): int
     {
         return $this->posicao;
     }
 
-    public function setPosicao($posicao)
+    public function jsonSerialize(): array
     {
-        $this->posicao = $posicao;
+        return $this->pokemon->dados() + ["posicao" => $this->posicao];
     }
 }
-
-?>

@@ -19,19 +19,16 @@ $timeController = new TimePokemonController();
 $time = $timeController->buscarTimeAtivo($_SESSION["id_usuario"]);
 
 // Busca os Pokémon do time
-$pokemonsTime = [];
+$membros = $time ? $time->getMembros() : [];
 
 if ($time) {
     $membroController = new TimeMembroController();
-
-    $pokemonsTime = $membroController->listarPokemonsDoTime(
-        $time->getIdTime()
-    );
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,91 +40,89 @@ if ($time) {
     <link rel="stylesheet" href="../../../public/css/styleHome.css">
     <title>Pokémon Home</title>
 </head>
+
 <body>
     <main class="home">
-    <img src="../../../public/imagens/titulo2.png" alt="Pokémon" class="titulo">
+        <img src="../../../public/imagens/titulo2.png" alt="Pokémon" class="titulo">
 
-    <section class="menu-home">
-        <div class="container-menu">
+        <section class="menu-home">
+            <div class="container-menu">
 
-        <div class="coluna-menu">
+                <div class="coluna-menu">
 
-            <a href="../team/index.php" class="botao-menu">
-                <div class="icone-menu">
-                    <img src="../../../public/imagens/pokemons-Photoroom.png" alt="icone">
-                </div>
-                <span>TEAM<br>BUILDER</span>
-            </a>
+                    <a href="../team/index.php" class="botao-menu">
+                        <div class="icone-menu">
+                            <img src="../../../public/imagens/pokemons-Photoroom.png" alt="icone">
+                        </div>
+                        <span>TEAM<br>BUILDER</span>
+                    </a>
 
-            <a href="../fases/index.php" class="botao-menu">
-                <div class="icone-menu">
-                    <img style="width: 120px; height: auto;" src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
-                </div>
-                <span>BATALHA</span>
-            </a>
+                    <a href="../fases/index.php" class="botao-menu">
+                        <div class="icone-menu">
+                            <img style="width: 120px; height: auto;" src="../../../public/imagens/pokebolas-Photoroom.png" alt="icone">
+                        </div>
+                        <span>BATALHA</span>
+                    </a>
 
-            <a href="../loja/index.php" class="botao-menu">
-                <div class="icone-menu">
-                    <img src="../../../public/imagens/loja-Photoroom.png" alt="icone">
-                </div>
-                <span>LOJA</span>
-            </a>
+                    <a href="../loja/index.php" class="botao-menu">
+                        <div class="icone-menu">
+                            <img src="../../../public/imagens/loja-Photoroom.png" alt="icone">
+                        </div>
+                        <span>LOJA</span>
+                    </a>
 
-            <a href="../login/index.php?acao=sair" class="botao-menu">
-                <div class="icone-menu">
-                    <img src="../../../public/imagens/sair-Photoroom.png" alt="icone">
-                </div>
-                <span>SAIR</span>
-            </a>
+                    <a href="../login/index.php?acao=sair" class="botao-menu">
+                        <div class="icone-menu">
+                            <img src="../../../public/imagens/sair-Photoroom.png" alt="icone">
+                        </div>
+                        <span>SAIR</span>
+                    </a>
 
-        </div>
-
-        <div class="perfil">
-
-            <h2>PERFIL DO JOGADOR</h2>
-
-            <div class="dados-jogador">
-
-                <div class="avatar">
-                    <img src="../../../public/imagens/ash.png" alt="Ash">
                 </div>
 
-                <div class="informacoes">
-                    <h3>
-                        <?= htmlspecialchars($nome . " " . $sobrenome) ?>
-                    </h3>
-                    <p>TREINADOR POKÉMON</p>
-                </div>
+                <div class="perfil">
 
-            </div>
+                    <h2>PERFIL DO JOGADOR</h2>
 
-            
-            <div class="time">
+                    <div class="dados-jogador">
 
-                <?php foreach ($pokemonsTime as $pokemon): ?>
+                        <div class="avatar">
+                            <img src="../../../public/imagens/ash.png" alt="Ash">
+                        </div>
 
-                    <div class="pokemon">
-                        <img
-                            src="<?= htmlspecialchars($pokemon["imagem"]) ?>"
-                            alt="<?= htmlspecialchars($pokemon["nome"]) ?>"
-                            title="<?= htmlspecialchars($pokemon["nome"]) ?>"
-                        >
+                        <div class="informacoes">
+                            <h3>
+                                <?= htmlspecialchars($nome . " " . $sobrenome) ?>
+                            </h3>
+                            <p>TREINADOR POKÉMON</p>
+                        </div>
+
                     </div>
 
-                <?php endforeach; ?>
 
-                <?php for ($i = count($pokemonsTime); $i < 6; $i++): ?>
+                    <div class="time">
 
-                    <div class="pokemon vazio"></div>
+                        <?php foreach ($membros as $membro): ?>
+                            <?php $pokemon = $membro->getPokemon(); ?>
+                            <div class="pokemon">
+                                <img
+                                    src="<?= htmlspecialchars($pokemon->getImagem() ?? "") ?>"
+                                    alt="<?= htmlspecialchars($pokemon->getNome()) ?>"
+                                    title="<?= htmlspecialchars($pokemon->getNome()) ?>">
+                            </div>
+                        <?php endforeach; ?>
 
-                <?php endfor; ?>
+                        <?php for ($i = count($membros); $i < 6; $i++): ?>
+                            <div class="pokemon vazio"></div>
+                        <?php endfor; ?>
 
+                    </div>
+
+
+                </div>
             </div>
-
-
-        </div>
-        </div>
-    </section>
+        </section>
     </main>
 </body>
+
 </html>

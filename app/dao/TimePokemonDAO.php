@@ -50,14 +50,8 @@ class TimePokemonDAO
             return null;
         }
 
-        $time = new TimePokemon();
-
-        $time->setIdTime($dados["id_time"]);
-        $time->setIdUsuario($dados["id_usuario"]);
-        $time->setNome($dados["nome"]);
-        $time->setAtivo($dados["ativo"]);
-
+        $time = TimePokemon::doBanco($dados);
+        (new TimeMembroDAO($this->conexao))->carregarMembros($time);
         return $time;
     }
 }
-?>
